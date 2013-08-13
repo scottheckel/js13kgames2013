@@ -1,0 +1,12 @@
+{
+	"name": "js13kgames2013",
+	"description": "The js13kgames 2013 competition entry by Scott Heckel",
+	"author": "Scott Heckel",
+	"dependencies": {
+		"socket.io": "~0.9.16",
+		"grunt-cli": "~0.1.9"
+	},
+	"engines": {
+		"node": "0.10.x"
+	}
+}
