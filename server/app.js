@@ -47,6 +47,7 @@ io.sockets.on('connection', function (socket) {
     var game = gaim.joinGame(data.gameId, data.user);
     if(game) {
       socket.join(game.id);
+      socket.broadcast.to(game.id).emit('refreshUsersList', game.players)
       callback({'success':true,'game':game});
     } else {
       callback({'success':false});

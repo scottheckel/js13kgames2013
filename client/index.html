@@ -39,6 +39,15 @@ var STATE_WELCOME = 0,
       state = STATE_WELCOME,
       me = null,
       inG = null;
+
+  function refreshUserList(users) {
+    var html = '';
+    users.forEach(function(user) {
+      html += '<li class="user-item">' + user.id + '</li>';
+    });
+    usersList.innerHTML = html;
+  }
+
   $('createGameBtn').on('click', function() {
     socket.emit(
       'createGame',
@@ -48,6 +57,7 @@ var STATE_WELCOME = 0,
           inG = data.game;
           welcomeWrapper.style.display = 'none';
           gameWrapper.style.display = 'block';
+          refreshUserList(data.game.players);
         } else {
           /* TODO: SH - Can't create */
         }
@@ -74,6 +84,7 @@ var STATE_WELCOME = 0,
             inG = data.game;
             welcomeWrapper.style.display = 'none';
             gameWrapper.style.display = 'block';
+            refreshUserList(data.game.players);
           } else {
             /* TODO: SH - Can't join */
           }
@@ -81,12 +92,8 @@ var STATE_WELCOME = 0,
       );
     });
   });
-  socket.on('refresh-users-list', function(data) {
-    var html = '';
-    data.forEach(function(user) {
-      html += '<li class="user-item">' + user + '</li>';
-    });
-    usersList.innerHTML = html;
+  socket.on('refreshUsersList', function(data) {
+    refreshUserList(data);
   });
 })();
 </script>
