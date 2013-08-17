@@ -1,0 +1,92 @@
+<script src="/socket.io/socket.io.js"></script>
+<script>
+window.$ = function(selector) {
+	var els = document.getElementsByClassName(selector);
+	return {
+		on: function(eventName, handler) {
+			var index = 0,
+				el;
+			for(;index < els.length;index++) {
+				el = els[index];
+				if(el.addEventListener) {
+					el.addEventListener(eventName, handler, false);
+				} else {
+					el.attachEvent('on' + eventName, handler);
+				}
+			}
+		}
+	};
+};
+</script>
+<div id="headerWrapper">
+  Connecting...
+</div>
+<div id="welcomeWrapper">
+  <ul id="gamesList">
+
+  </ul>
+  <button class="createGameBtn">Create New Game</button>
+</div>
+<div id="gameWrapper" style="display:none">
+  <ul id="usersList">
+  </ul>
+</div>
+<script>
+var STATE_WELCOME = 0,
+    STATE_GAME = 1;
+(function() {
+  var socket = io.connect('http://localhost:8080'),
+      state = STATE_WELCOME,
+      me = null,
+      inG = null;
+  $('createGameBtn').on('click', function() {
+    socket.emit(
+      'createGame',
+      {'user':me},
+      function(data) {
+        if(data.success) {
+          inG = data.game;
+          welcomeWrapper.style.display = 'none';
+          gameWrapper.style.display = 'block';
+        } else {
+          /* TODO: SH - Can't create */
+        }
+      }
+    );
+  });
+  socket.on('connected', function(data) {
+    me = data;
+    headerWrapper.innerHTML = 'Welcome, ' + data.id;
+  });
+  socket.on('refreshGames', function(data) {
+    var html = '',
+        index = 0;
+    for(;index<data.length;index++) {
+      html += '<li class="game-item">' + data[index].id + '</li>';
+    }
+    gamesList.innerHTML = html;
+    $('game-item').on('click', function() {
+      var gameId = this.innerHTML;
+      socket.emit('joinGame',
+        {'gameId':gameId,'user':me},
+        function(data) {
+          if(data.success) {
+            inG = data.game;
+            welcomeWrapper.style.display = 'none';
+            gameWrapper.style.display = 'block';
+          } else {
+            /* TODO: SH - Can't join */
+          }
+        }
+      );
+    });
+  });
+  socket.on('refresh-users-list', function(data) {
+    var html = '';
+    data.forEach(function(user) {
+      html += '<li class="user-item">' + user + '</li>';
+    });
+    usersList.innerHTML = html;
+  });
+})();
+</script>
