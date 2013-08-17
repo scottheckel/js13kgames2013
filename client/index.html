@@ -26,10 +26,10 @@ window.$ = function(selector) {
 </script>
 <script>
 function drawMap(canvas, entities) {
-  var x = -3,
-      y = -3,
-      min = -3,
-      max = 3,
+  var max = 5,
+      min = -max,
+      x = min,
+      y = min,
       size = 30
       width = size * 2,
       horiz = 3/4 * width,
