@@ -13,17 +13,24 @@ console.log("Server started on localhost:" + gamePort);
 function handler (req, res) {
   var uri = url.parse(req.url).pathname,
       filename = path.join(process.cwd(), 'client', uri);
-  if(fs.statSync(filename).isDirectory()) filename += '/index.html';
-  fs.readFile(filename,
-  function (err, data) {
-    if (err) {
-      res.writeHead(500);
-      return res.end('Error loading ' + filename);
+  if(fs.exists(filename, function(exists) {
+    if(!exists) {
+      res.writeHead(404);
+      return res.end('File not found: ' + filename);
     }
+    if(fs.statSync(filename).isDirectory()) filename += '/index.html';
+    fs.readFile(filename,
+      function (err, data) {
+        if (err) {
+          res.writeHead(500);
+          return res.end('Error loading ' + filename);
+        }
 
-    res.writeHead(200);
-    res.end(data);
-  });
+        res.writeHead(200);
+        res.end(data);
+      }
+    );
+  }));
 }
 
 io.sockets.on('connection', function (socket) {
