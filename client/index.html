@@ -1,3 +1,5 @@
+<!DOCTYPE html>
+<head>
 <script src="/socket.io/socket.io.js"></script>
 <script>
 window.$ = function(selector) {
@@ -22,6 +24,48 @@ window.$ = function(selector) {
 	};
 };
 </script>
+<script>
+function drawMap(canvas, entities) {
+  var x = -3,
+      y = -3,
+      min = -3,
+      max = 3,
+      size = 30
+      width = size * 2,
+      horiz = 3/4 * width,
+      height = Math.sqrt(3)/2 * width,
+      vert = height,
+      context = canvas.getContext('2d');
+  var drawHex = function(xx, yy) {
+    var i = 0,
+        centerX = xx*horiz+400,
+        centerY = yy*vert+xx*vert/2+400,
+        angle, xI, yI;
+    context.beginPath();
+    for(;i<=6;i++) {
+      angle = 2 * Math.PI / 6 * i;
+      xI = centerX + size * Math.cos(angle);
+      yI = centerY + size * Math.sin(angle);
+      if(i==0) {
+        context.moveTo(xI,yI);
+      } else {
+        context.lineTo(xI,yI);
+      }
+    }
+    context.stroke();
+    context.fillText("("+xx+","+yy+")",centerX,centerY);
+  };
+  for(;x<=max;x++) {
+    for(y=min;y<=max;y++) {
+      if(Math.abs(x+y)<=max) {
+        drawHex(x,y);
+      }
+    }
+  }
+}
+</script>
+</head>
+<body>
 <div id="headerWrapper">
   Connecting...
 </div>
@@ -36,6 +80,8 @@ window.$ = function(selector) {
   </ul>
   <ul id="messagesList">
   </ul>
+  <canvas id="gameCanvas" width="800" height="800">
+  </canvas>
 </div>
 <script id="template-gamesListItem" type="template">
 <li class="game-item" data-id="{{id}}">Game {{id}} by {{host}}</li>
@@ -76,6 +122,7 @@ var STATE_WELCOME = 0,
           welcomeWrapper.style.display = 'none';
           gameWrapper.style.display = 'block';
           refreshUserList(data.game.players);
+          drawMap(gameCanvas);
         } else {
           /* TODO: SH - Can't create */
         }
@@ -103,6 +150,7 @@ var STATE_WELCOME = 0,
             welcomeWrapper.style.display = 'none';
             gameWrapper.style.display = 'block';
             refreshUserList(data.game.players);
+            drawMap(gameCanvas);
           } else {
             /* TODO: SH - Can't join */
           }
@@ -123,3 +171,5 @@ var STATE_WELCOME = 0,
   });
 })();
 </script>
+</body>
+</html>

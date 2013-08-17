@@ -26,7 +26,8 @@ io.sockets.on('connection', function (socket) {
   };
 
   var user = {
-    id: util.guid()
+    id: util.guid(),
+    client: socket.id
   };
 
   socket.emit('connected', user);
