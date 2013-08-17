@@ -4,9 +4,11 @@ var app = require('http').createServer(handler),
   path = require('path'),
   fs = require('fs'),
   gaim = require('./gaim'),
-  util = require('./util'); 
+  util = require('./util'),
+  gamePort = process.argv[2] || 8080; 
 
-app.listen(8080);
+app.listen(gamePort);
+console.log("Server started on localhost:" + gamePort);
 
 function handler (req, res) {
   var uri = url.parse(req.url).pathname,
