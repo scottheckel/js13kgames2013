@@ -1,7 +1,7 @@
 <script src="/socket.io/socket.io.js"></script>
 <script>
 window.$ = function(selector) {
-	var els = document.getElementsByClassName(selector);
+	var els = selector[0] == '#' ? [document.getElementById(selector.substring(1))] : document.getElementsByClassName(selector);
 	return {
 		on: function(eventName, handler) {
 			var index = 0,
@@ -14,7 +14,11 @@ window.$ = function(selector) {
 					el.attachEvent('on' + eventName, handler);
 				}
 			}
-		}
+		},
+    template: function(data) {
+      var index = 0;
+      return els[0].innerHTML.replace(/\{\{(\w*)\}\}/g, function(m,key){return data.hasOwnProperty(key)?data[key]:"";});
+    }
 	};
 };
 </script>
@@ -31,6 +35,9 @@ window.$ = function(selector) {
   <ul id="usersList">
   </ul>
 </div>
+<script id="usersListItemTemplate" type="template">
+<li>User: {{id}}</li>
+</script>
 <script>
 var STATE_WELCOME = 0,
     STATE_GAME = 1;
@@ -43,7 +50,7 @@ var STATE_WELCOME = 0,
   function refreshUserList(users) {
     var html = '';
     users.forEach(function(user) {
-      html += '<li class="user-item">' + user.id + '</li>';
+      html += $('#usersListItemTemplate').template(user);
     });
     usersList.innerHTML = html;
   }
