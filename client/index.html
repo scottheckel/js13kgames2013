@@ -34,9 +34,20 @@ window.$ = function(selector) {
 <div id="gameWrapper" style="display:none">
   <ul id="usersList">
   </ul>
+  <ul id="messagesList">
+  </ul>
 </div>
-<script id="usersListItemTemplate" type="template">
+<script id="template-gamesListItem" type="template">
+<li class="game-item" data-id="{{id}}">Game {{id}} by {{host}}</li>
+</script>
+<script id="template-welcome" type="template">
+Welcome, {{id}}! This is a game created for the js13kgames competition
+</script>
+<script id="template-usersListItem" type="template">
 <li>User: {{id}}</li>
+</script>
+<script id="template-messagesListItem" type="template">
+<li>{{msg}}</li>
 </script>
 <script>
 var STATE_WELCOME = 0,
@@ -50,7 +61,7 @@ var STATE_WELCOME = 0,
   function refreshUserList(users) {
     var html = '';
     users.forEach(function(user) {
-      html += $('#usersListItemTemplate').template(user);
+      html += $('#template-usersListItem').template(user);
     });
     usersList.innerHTML = html;
   }
@@ -73,17 +84,17 @@ var STATE_WELCOME = 0,
   });
   socket.on('connected', function(data) {
     me = data;
-    headerWrapper.innerHTML = 'Welcome, ' + data.id;
+    headerWrapper.innerHTML = $('#template-welcome').template(data);
   });
   socket.on('refreshGames', function(data) {
     var html = '',
         index = 0;
     for(;index<data.length;index++) {
-      html += '<li class="game-item">' + data[index].id + '</li>';
+      html += $('#template-gamesListItem').template({id: data[index].id, host: data[index].host.id});
     }
     gamesList.innerHTML = html;
     $('game-item').on('click', function() {
-      var gameId = this.innerHTML;
+      var gameId = this.getAttribute('data-id');
       socket.emit('joinGame',
         {'gameId':gameId,'user':me},
         function(data) {
@@ -101,6 +112,14 @@ var STATE_WELCOME = 0,
   });
   socket.on('refreshUsersList', function(data) {
     refreshUserList(data);
+  });
+  socket.on('updateMessages', function(data) {
+    var html = '',
+        index = 0;
+    for(;index<data.length;index++) {
+      html += $('#template-messagesListItem').template(data[index]);
+    }
+    messagesList.innerHTML = html;
   });
 })();
 </script>

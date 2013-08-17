@@ -20,22 +20,11 @@ function handler (req, res) {
 }
 
 io.sockets.on('connection', function (socket) {
-  /*var joinGame = function(gameName, user) {
-    games[gameName].users.push(user);
-    return true;
-  };
-  var createGame = function(gameName, creator) {
-    games[gameName] = {
-      'name': gameName,
-      'creator': creator,
-      'users': [creator]
-    };
-    socket.emit('refresh-games-list', games);
-    return true;
+  var updateMessages = function(gameId) {
+    var messages = gaim.getMessages(gameId);
+    io.sockets.in(gameId).emit('updateMessages', messages);
   };
 
-  socket.emit('refresh-games-list', games);
-  */
   var user = {
     id: util.guid()
   };
@@ -47,8 +36,9 @@ io.sockets.on('connection', function (socket) {
     var game = gaim.joinGame(data.gameId, data.user);
     if(game) {
       socket.join(game.id);
-      socket.broadcast.to(game.id).emit('refreshUsersList', game.players)
+      socket.broadcast.to(game.id).emit('refreshUsersList', game.players);
       callback({'success':true,'game':game});
+      updateMessages(game.id);
     } else {
       callback({'success':false});
     }
@@ -59,6 +49,7 @@ io.sockets.on('connection', function (socket) {
     if(game) {
       socket.join(game.id);
       callback({'success':true,'game':game});
+      updateMessages(game.id);
     } else {
       callback({'success':false});
     }
