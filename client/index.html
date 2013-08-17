@@ -35,17 +35,19 @@ function drawMap(canvas, entities) {
       horiz = 3/4 * width,
       height = Math.sqrt(3)/2 * width,
       vert = height,
+      offsetX = vert * (max + 1),
+      offsetY = offsetX,
       context = canvas.getContext('2d');
   var drawHex = function(xx, yy) {
     var i = 0,
-        centerX = xx*horiz+400,
-        centerY = yy*vert+xx*vert/2+400,
+        centerX = xx*horiz,
+        centerY = yy*vert+xx*vert/2,
         angle, xI, yI;
     context.beginPath();
     for(;i<=6;i++) {
       angle = 2 * Math.PI / 6 * i;
-      xI = centerX + size * Math.cos(angle);
-      yI = centerY + size * Math.sin(angle);
+      xI = centerX + size * Math.cos(angle) + offsetX;
+      yI = centerY + size * Math.sin(angle) + offsetY;
       if(i==0) {
         context.moveTo(xI,yI);
       } else {
@@ -53,7 +55,7 @@ function drawMap(canvas, entities) {
       }
     }
     context.stroke();
-    context.fillText("("+xx+","+yy+")",centerX,centerY);
+    context.fillText("("+xx+","+yy+")",centerX+offsetX,centerY+offsetY);
   };
   for(;x<=max;x++) {
     for(y=min;y<=max;y++) {

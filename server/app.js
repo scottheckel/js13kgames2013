@@ -1,5 +1,7 @@
 var app = require('http').createServer(handler),
   io = require('socket.io').listen(app),
+  url = require('url'),
+  path = require('path'),
   fs = require('fs'),
   gaim = require('./gaim'),
   util = require('./util'); 
@@ -7,11 +9,14 @@ var app = require('http').createServer(handler),
 app.listen(8080);
 
 function handler (req, res) {
-  fs.readFile(__dirname + '/../client/index.html',
+  var uri = url.parse(req.url).pathname,
+      filename = path.join(process.cwd(), 'client', uri);
+  if(fs.statSync(filename).isDirectory()) filename += '/index.html';
+  fs.readFile(filename,
   function (err, data) {
     if (err) {
       res.writeHead(500);
-      return res.end('Error loading index.html');
+      return res.end('Error loading ' + filename);
     }
 
     res.writeHead(200);
