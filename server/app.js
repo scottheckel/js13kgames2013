@@ -45,7 +45,7 @@ io.sockets.on('connection', function (socket) {
   };
 
   socket.emit('connected', user);
-  socket.emit('refreshGames', gaim.getGameList());
+  socket.emit('refreshGames', gaim.getGameList(gaim.STATE.LOBBY));
 
   socket.on('joinGame', function (data, callback) {
     var game = gaim.joinGame(data.gameId, data.user);
@@ -68,5 +68,11 @@ io.sockets.on('connection', function (socket) {
     } else {
       callback({'success':false});
     }
+  });
+
+  socket.on('startGame', function (data) {
+    var game = gaim.startGame(data.gameId);
+    io.sockets.in(game.id).emit('gameStarted', {'game':game});
+    updateMessages(game.id);
   });
 });

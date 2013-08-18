@@ -17,6 +17,13 @@ window.$ = function(selector) {
 				}
 			}
 		},
+    attr: function(name, value) {
+      var index = 0,
+          el;
+      for(;index<els.length;index++) {
+        els[index].setAttribute(name, value);
+      }
+    },
     template: function(data) {
       var index = 0;
       return els[0].innerHTML.replace(/\{\{(\w*)\}\}/g, function(m,key){return data.hasOwnProperty(key)?data[key]:"";});
@@ -25,8 +32,8 @@ window.$ = function(selector) {
 };
 </script>
 <script>
-function drawMap(canvas, entities) {
-  var max = 5,
+function drawMap(canvas, game) {
+  var max = game.mapSize,
       min = -max,
       x = min,
       y = min,
@@ -38,16 +45,18 @@ function drawMap(canvas, entities) {
       offsetX = vert * (max + 1),
       offsetY = offsetX,
       context = canvas.getContext('2d');
+  var coordToPixel = function(xx, yy) {
+    return {x:xx*horiz,y:yy*vert+xx*vert/2};
+  };
   var drawHex = function(xx, yy) {
     var i = 0,
-        centerX = xx*horiz,
-        centerY = yy*vert+xx*vert/2,
+        center = coordToPixel(xx,yy),
         angle, xI, yI;
     context.beginPath();
     for(;i<=6;i++) {
       angle = 2 * Math.PI / 6 * i;
-      xI = centerX + size * Math.cos(angle) + offsetX;
-      yI = centerY + size * Math.sin(angle) + offsetY;
+      xI = center.x + size * Math.cos(angle) + offsetX;
+      yI = center.y + size * Math.sin(angle) + offsetY;
       if(i==0) {
         context.moveTo(xI,yI);
       } else {
@@ -55,7 +64,6 @@ function drawMap(canvas, entities) {
       }
     }
     context.stroke();
-    context.fillText("("+xx+","+yy+")",centerX+offsetX,centerY+offsetY);
   };
   for(;x<=max;x++) {
     for(y=min;y<=max;y++) {
@@ -63,6 +71,12 @@ function drawMap(canvas, entities) {
         drawHex(x,y);
       }
     }
+  }
+  var k, e, pos;
+  for(k in game.entities) {
+    e = game.entities[k];
+    pos = coordToPixel(e.x, e.y);
+    context.fillText(e.type == 0 ? "p" : "s", pos.x + offsetX, pos.y + offsetY);
   }
 }
 </script>
@@ -82,11 +96,12 @@ function drawMap(canvas, entities) {
   </ul>
   <ul id="messagesList">
   </ul>
+  <button id="startGameBtn">Start Game</button>
   <canvas id="gameCanvas" width="800" height="800">
   </canvas>
 </div>
 <script id="template-gamesListItem" type="template">
-<li class="game-item" data-id="{{id}}">Game {{id}} by {{host}}</li>
+<li class="game-item" data-id="{{id}}">Game {{id}} by {{host}} ({{count}} players)</li>
 </script>
 <script id="template-welcome" type="template">
 Welcome, {{id}}! This is a game created for the js13kgames competition
@@ -114,6 +129,11 @@ var STATE_WELCOME = 0,
     usersList.innerHTML = html;
   }
 
+  function onStartGame() {
+    $('#startGameBtn').attr('disabled', 'disabled');
+    socket.emit('startGame', {gameId:inG.id});
+  }
+
   $('createGameBtn').on('click', function() {
     socket.emit(
       'createGame',
@@ -124,7 +144,8 @@ var STATE_WELCOME = 0,
           welcomeWrapper.style.display = 'none';
           gameWrapper.style.display = 'block';
           refreshUserList(data.game.players);
-          drawMap(gameCanvas);
+          $('#startGameBtn').on('click', onStartGame);
+          //drawMap(gameCanvas, data.game);
         } else {
           /* TODO: SH - Can't create */
         }
@@ -139,7 +160,7 @@ var STATE_WELCOME = 0,
     var html = '',
         index = 0;
     for(;index<data.length;index++) {
-      html += $('#template-gamesListItem').template({id: data[index].id, host: data[index].host.id});
+      html += $('#template-gamesListItem').template({id: data[index].id, host: data[index].host.id, count: data[index].count});
     }
     gamesList.innerHTML = html;
     $('game-item').on('click', function() {
@@ -152,7 +173,6 @@ var STATE_WELCOME = 0,
             welcomeWrapper.style.display = 'none';
             gameWrapper.style.display = 'block';
             refreshUserList(data.game.players);
-            drawMap(gameCanvas);
           } else {
             /* TODO: SH - Can't join */
           }
@@ -170,6 +190,9 @@ var STATE_WELCOME = 0,
       html += $('#template-messagesListItem').template(data[index]);
     }
     messagesList.innerHTML = html;
+  });
+  socket.on('gameStarted', function(data) {
+    drawMap(gameCanvas, data.game);
   });
 })();
 </script>
