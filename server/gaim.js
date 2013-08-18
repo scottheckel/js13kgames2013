@@ -37,7 +37,7 @@ gaim.createGame = function(creator) {
 		players: [creator],
 		state: STATE_LOBBY,
 		mapSize: 5,
-		planetCount: 8,
+		planetCount: 10,
 		entities: {},
 		entitySequence: 0
 	};
@@ -90,12 +90,14 @@ gaim.hasEntity = function(game, entityType, x, y) {
 };
 
 gaim.startGameCreatePlanets = function(game) {
-	var index = 0,
-		max = game.mapSize * 2 + 1,
+	var max = game.mapSize * 2 + 1,
+		planets = [],
 		entity,
 		x,
-		y;
-	for(;index<game.planetCount;index++) {
+		y,
+		index,
+		playerIndex;
+	for(index=0;index<game.planetCount;index++) {
 		do {
 			x = util.randomInt(max) - game.mapSize;
 			y = util.randomInt(max) - game.mapSize;
@@ -104,9 +106,20 @@ gaim.startGameCreatePlanets = function(game) {
 			id: game.entitySequence++,
 			x: x,
 			y: y,
+			owner: null,
 			type: ENTITY_PLANET
 		};
 		game.entities[entity.id] = entity;
+		planets.push(entity);
+	}
+
+	// Assign planets to players
+	var planetsPerPlayer = Math.floor(planets.length / game.players.length);
+	for(index=0,playerIndex=0;index<game.players.length;playerIndex++,index+=planetsPerPlayer) {
+		var p;
+		for(p=0;p<planetsPerPlayer;p++) {
+			planets[p+index].owner = game.players[playerIndex].id;
+		}
 	}
 };
 
