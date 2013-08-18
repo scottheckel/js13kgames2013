@@ -37,6 +37,7 @@ gaim.createGame = function(creator) {
 		players: [creator],
 		state: STATE_LOBBY,
 		mapSize: 5,
+		planetCount: 8,
 		entities: {},
 		entitySequence: 0
 	};
@@ -94,11 +95,11 @@ gaim.startGameCreatePlanets = function(game) {
 		entity,
 		x,
 		y;
-	for(;index<6;index++) {
+	for(;index<game.planetCount;index++) {
 		do {
 			x = util.randomInt(max) - game.mapSize;
 			y = util.randomInt(max) - game.mapSize;
-		} while(this.hasEntity(game, ENTITY_PLANET, x, y));
+		} while(Math.abs(x+y)>game.mapSize || this.hasEntity(game, ENTITY_PLANET, x, y));
 		entity = {
 			id: game.entitySequence++,
 			x: x,
