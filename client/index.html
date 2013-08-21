@@ -1,36 +1,7 @@
 <!DOCTYPE html>
 <head>
 <script src="/socket.io/socket.io.js"></script>
-<script>
-window.$ = function(selector) {
-	var els = selector[0] == '#' ? [document.getElementById(selector.substring(1))] : document.getElementsByClassName(selector);
-	return {
-		on: function(eventName, handler) {
-			var index = 0,
-				el;
-			for(;index < els.length;index++) {
-				el = els[index];
-				if(el.addEventListener) {
-					el.addEventListener(eventName, handler, false);
-				} else {
-					el.attachEvent('on' + eventName, handler);
-				}
-			}
-		},
-    attr: function(name, value) {
-      var index = 0,
-          el;
-      for(;index<els.length;index++) {
-        els[index].setAttribute(name, value);
-      }
-    },
-    template: function(data) {
-      var index = 0;
-      return els[0].innerHTML.replace(/\{\{(\w*)\}\}/g, function(m,key){return data.hasOwnProperty(key)?data[key]:"";});
-    }
-	};
-};
-</script>
+<script src="/query.js"></script>
 <script>
 function drawMap(canvas, game) {
   var max = game.mapSize,
@@ -100,16 +71,16 @@ function drawMap(canvas, game) {
   <canvas id="gameCanvas" width="800" height="800">
   </canvas>
 </div>
-<script id="template-gamesListItem" type="template">
+<script id="templateGamesListItem" type="template">
 <li class="game-item" data-id="{{id}}">Game {{id}} by {{host}} ({{count}} players)</li>
 </script>
-<script id="template-welcome" type="template">
+<script id="templateWelcome" type="template">
 Welcome, {{id}}! This is a game created for the js13kgames competition
 </script>
-<script id="template-usersListItem" type="template">
+<script id="templateUsersListItem" type="template">
 <li>User: {{id}}</li>
 </script>
-<script id="template-messagesListItem" type="template">
+<script id="templateMessagesListItem" type="template">
 <li>{{msg}}</li>
 </script>
 <script>
@@ -124,7 +95,7 @@ var STATE_WELCOME = 0,
   function refreshUserList(users) {
     var html = '';
     users.forEach(function(user) {
-      html += $('#template-usersListItem').template(user);
+      html += $.template(templateUsersListItem.innerHTML, user);
     });
     usersList.innerHTML = html;
   }
@@ -154,13 +125,13 @@ var STATE_WELCOME = 0,
   });
   socket.on('connected', function(data) {
     me = data;
-    headerWrapper.innerHTML = $('#template-welcome').template(data);
+    headerWrapper.innerHTML = $.template(templateWelcome.innerHTML, data);
   });
   socket.on('refreshGames', function(data) {
     var html = '',
         index = 0;
     for(;index<data.length;index++) {
-      html += $('#template-gamesListItem').template({id: data[index].id, host: data[index].host.id, count: data[index].count});
+      html += $.template(templateGamesListItem.innerHTML, {id: data[index].id, host: data[index].host.id, count: data[index].count});
     }
     gamesList.innerHTML = html;
     $('game-item').on('click', function() {
@@ -187,7 +158,7 @@ var STATE_WELCOME = 0,
     var html = '',
         index = 0;
     for(;index<data.length;index++) {
-      html += $('#template-messagesListItem').template(data[index]);
+      html += $.template(templateMessagesListItem.innerHTML, data[index]);
     }
     messagesList.innerHTML = html;
   });
