@@ -1,0 +1,33 @@
+/*
+midnight slate 556270
+pacifica 4ecdc4
+apple chic c7f464
+cheery pink ff6b6b
+grandma's pillow c44d58
+soft grey #ebe6e1
+*/
+body {
+	background: #556270;
+	color: #ebe6e1;
+	font-family: Arial, sans-serif;
+}
+
+.gameList #welcomeWrapper table {
+	background: #c44d58;
+	width:100%;
+	border-spacing: 0px;
+	border-collapse: collapse;
+	border-radius: 10px;
+}
+
+.gameList #welcomeWrapper td, .gameList #welcomeWrapper th {
+	padding: 5px;
+}
+
+.gameList #welcomeWrapper tbody tr:hover {
+	background: #ff6b6b;
+}
+
+.gameLobby {
+
+}

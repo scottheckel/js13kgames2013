@@ -2,7 +2,7 @@
 	var query = function(selector) {
 		var els = null;
 		if(typeof selector === "string") {
-			els = selector[0] == '#' ? [doc.getElementById(selector.substring(1))] : doc.getElementsByClassName(selector);
+			els = selector[0] == '#' ? [doc.getElementById(selector.substring(1))] : doc.getElementsByClassName(selector.substring(1));
 		} else if(!!selector) {
 			els = [selector];
 		}
@@ -15,11 +15,22 @@
 						el.attachEvent('on' + eventName, handler);
 					}
 				});
+				return this;
 			},
 		    attr: function(name, value) {
 		    	query.each(els, function(el) {
 		    		el.setAttribute(name, value);
 		    	});
+		    	return this;
+		    },
+		    html: function(value) {
+		    	if(value == undefined) {
+		    		return els.length > 0 ? els[0].innerHTML : '';
+		    	}
+		    	query.each(els, function(el) {
+		    		el.innerHTML = value;
+		    	});
+		    	return this;
 		    }
 		};
 	};

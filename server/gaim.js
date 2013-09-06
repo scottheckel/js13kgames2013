@@ -1,4 +1,4 @@
-var gaim = module.exports = { games: {}, messages: {}, count: 0};
+var gaim = module.exports = { games: {}, count: 0};
 
 /* Game States */
 var STATE_LOBBY = 0,
@@ -17,19 +17,9 @@ var ENTITY_PLANET = 0,
 
 var util = require('./util');
 
-gaim.createMessage = function(gameId, message, sender, to) {
-	this.messages[gameId].push({
-		msg: message,
-		from: sender,
-		to: to
-	});
-};
-
-gaim.getMessages = function(gameId, playerId) {
-	return this.messages[gameId];
-};
-
 gaim.createGame = function(creator) {
+	creator.color = '#0000ff';
+
 	// Create the game object
 	var game = {
 		id: util.guid(),
@@ -44,9 +34,6 @@ gaim.createGame = function(creator) {
 
 	// Add to our games
 	this.games[game.id] = game;
-	this.messages[game.id] = [];
-	gaim.createMessage(game.id, "Game created.");
-	gaim.createMessage(game.id, creator.id + " joined the game.");
 	this.count++;
 
 	return game;
@@ -54,9 +41,11 @@ gaim.createGame = function(creator) {
 
 gaim.joinGame = function(id, player) {
 	var game = this.games[id];
-	if(game) {
+	if(game && game.players.length < 2) {
+		player.color = '#00ff00';
 		game.players.push(player);
-		gaim.createMessage(game.id, player.id + " joined the game.");
+	} else {
+		game = null;
 	}
 	return game;
 };
@@ -89,44 +78,8 @@ gaim.hasEntity = function(game, entityType, x, y) {
 	return false;
 };
 
-gaim.startGameCreatePlanets = function(game) {
-	var max = game.mapSize * 2 + 1,
-		planets = [],
-		entity,
-		x,
-		y,
-		index,
-		playerIndex;
-	for(index=0;index<game.planetCount;index++) {
-		do {
-			x = util.randomInt(max) - game.mapSize;
-			y = util.randomInt(max) - game.mapSize;
-		} while(Math.abs(x+y)>game.mapSize || this.hasEntity(game, ENTITY_PLANET, x, y));
-		entity = {
-			id: game.entitySequence++,
-			x: x,
-			y: y,
-			owner: null,
-			type: ENTITY_PLANET
-		};
-		game.entities[entity.id] = entity;
-		planets.push(entity);
-	}
-
-	// Assign planets to players
-	var planetsPerPlayer = Math.floor(planets.length / game.players.length);
-	for(index=0,playerIndex=0;index<game.players.length;playerIndex++,index+=planetsPerPlayer) {
-		var p;
-		for(p=0;p<planetsPerPlayer;p++) {
-			planets[p+index].owner = game.players[playerIndex].id;
-		}
-	}
-};
-
 gaim.startGame = function(id) {
 	var game = this.games[id];
-	this.startGameCreatePlanets(game);
-	game.state = STATE_PLAYING;
-	gaim.createMessage(game.id, "The game has started.");
+	game.state = game.players.length == 2 ? STATE_PLAYING : STATE_LOBBY;
 	return game;
 };

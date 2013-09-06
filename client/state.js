@@ -1,8 +1,11 @@
 (function(exports) {
-	var gameStates = function(current, factoryCallback) {
+	var gameStates = function(factoryCallback, socket) {
 		var stack = [],
 			paused = false;
 		return {
+			current: function() {
+				return stack.length > 0 ? stack[stack.length - 1] : {};
+			},
 			pause: function(on) {
 				paused = on;
 				$.each(stack, function(state) {
@@ -10,14 +13,21 @@
 				});
 			},
 			pop: function() {
-				var oldState = stack.pop();
-				oldState.onDestroy();
-				stack[stack.length - 1].onActivate();
+				var oldState = null;
+				if(stack.length > 0) {
+					oldState = stack.pop();
+					oldState.onDestroy();
+				}
+				if(stack.length > 0) {
+					stack[stack.length - 1].onActivate();
+				}
 				return oldState;
 			},
-			push: function(state) {
-				stack[stack.length - 1].onDeactivate();
-				var newState = factoryCallback(state, this);
+			push: function(state, data) {
+				if(stack.length > 0) {
+					stack[stack.length - 1].onDeactivate();
+				}
+				var newState = factoryCallback(state, data, this, socket);
 				stack.push(newState);
 				newState.onActivate();
 			},

@@ -2,65 +2,28 @@
 <head>
 <script src="/socket.io/socket.io.js"></script>
 <script src="/query.js"></script>
-<script>
-function drawMap(canvas, game) {
-  var max = game.mapSize,
-      min = -max,
-      x = min,
-      y = min,
-      size = 30
-      width = size * 2,
-      horiz = 3/4 * width,
-      height = Math.sqrt(3)/2 * width,
-      vert = height,
-      offsetX = vert * (max + 1),
-      offsetY = offsetX,
-      context = canvas.getContext('2d');
-  var coordToPixel = function(xx, yy) {
-    return {x:xx*horiz,y:yy*vert+xx*vert/2};
-  };
-  var drawHex = function(xx, yy) {
-    var i = 0,
-        center = coordToPixel(xx,yy),
-        angle, xI, yI;
-    context.beginPath();
-    for(;i<=6;i++) {
-      angle = 2 * Math.PI / 6 * i;
-      xI = center.x + size * Math.cos(angle) + offsetX;
-      yI = center.y + size * Math.sin(angle) + offsetY;
-      if(i==0) {
-        context.moveTo(xI,yI);
-      } else {
-        context.lineTo(xI,yI);
-      }
-    }
-    context.stroke();
-  };
-  for(;x<=max;x++) {
-    for(y=min;y<=max;y++) {
-      if(Math.abs(x+y)<=max) {
-        drawHex(x,y);
-      }
-    }
-  }
-  var k, e, pos;
-  for(k in game.entities) {
-    e = game.entities[k];
-    pos = coordToPixel(e.x, e.y);
-    context.fillText(e.type == 0 ? "p" : "s", pos.x + offsetX, pos.y + offsetY);
-  }
-}
-</script>
+<script src="/states/gameList.js"></script>
+<script src="/states/gameLobby.js"></script>
+<script src="/stateFactory.js"></script>
+<script src="/state.js"></script>
+<link rel="stylesheet" href="/s.css"></link>
 </head>
-<body>
+<body id="body">
 <div id="headerWrapper">
   Connecting...
 </div>
 <div id="welcomeWrapper">
-  <ul id="gamesList">
-
-  </ul>
-  <button class="createGameBtn">Create New Game</button>
+  <table>
+    <thead>
+      <tr>
+        <th>Game Name</th>
+        <th>Host</th>
+        <th>Players</th>
+      </tr>
+    </thead>
+    <tbody id="gamesList"></tbody>
+  </table>
+  <button id="createGameBtn">Create New Game</button>
 </div>
 <div id="gameWrapper" style="display:none">
   <ul id="usersList">
@@ -68,11 +31,16 @@ function drawMap(canvas, game) {
   <ul id="messagesList">
   </ul>
   <button id="startGameBtn">Start Game</button>
+  <button id="endGameBtn">End Game</button>
   <canvas id="gameCanvas" width="800" height="800">
   </canvas>
 </div>
 <script id="templateGamesListItem" type="template">
-<li class="game-item" data-id="{{id}}">Game {{id}} by {{host}} ({{count}} players)</li>
+<tr class="game-item" data-id="{{id}}">
+  <td>{{id}}</td>
+  <td>{{host}}</td>
+  <td>{{count}}</td>
+</tr>
 </script>
 <script id="templateWelcome" type="template">
 Welcome, {{id}}! This is a game created for the js13kgames competition
@@ -84,88 +52,13 @@ Welcome, {{id}}! This is a game created for the js13kgames competition
 <li>{{msg}}</li>
 </script>
 <script>
-var STATE_WELCOME = 0,
-    STATE_GAME = 1;
-(function() {
+(function(w) {
   var socket = io.connect('http://localhost:8080'),
-      state = STATE_WELCOME,
-      me = null,
-      inG = null;
-
-  function refreshUserList(users) {
-    var html = '';
-    users.forEach(function(user) {
-      html += $.template(templateUsersListItem.innerHTML, user);
-    });
-    usersList.innerHTML = html;
-  }
-
-  function onStartGame() {
-    $('#startGameBtn').attr('disabled', 'disabled');
-    socket.emit('startGame', {gameId:inG.id});
-  }
-
-  $('createGameBtn').on('click', function() {
-    socket.emit(
-      'createGame',
-      {'user':me},
-      function(data) {
-        if(data.success) {
-          inG = data.game;
-          welcomeWrapper.style.display = 'none';
-          gameWrapper.style.display = 'block';
-          refreshUserList(data.game.players);
-          $('#startGameBtn').on('click', onStartGame);
-          //drawMap(gameCanvas, data.game);
-        } else {
-          /* TODO: SH - Can't create */
-        }
-      }
-    );
+      stateMachine = w.gameStates(w.stateFactory, socket);
+  socket.on('connected', function(me) {
+    stateMachine.push("gameList", {'me':me});
   });
-  socket.on('connected', function(data) {
-    me = data;
-    headerWrapper.innerHTML = $.template(templateWelcome.innerHTML, data);
-  });
-  socket.on('refreshGames', function(data) {
-    var html = '',
-        index = 0;
-    for(;index<data.length;index++) {
-      html += $.template(templateGamesListItem.innerHTML, {id: data[index].id, host: data[index].host.id, count: data[index].count});
-    }
-    gamesList.innerHTML = html;
-    $('game-item').on('click', function() {
-      var gameId = this.getAttribute('data-id');
-      socket.emit('joinGame',
-        {'gameId':gameId,'user':me},
-        function(data) {
-          if(data.success) {
-            inG = data.game;
-            welcomeWrapper.style.display = 'none';
-            gameWrapper.style.display = 'block';
-            refreshUserList(data.game.players);
-          } else {
-            /* TODO: SH - Can't join */
-          }
-        }
-      );
-    });
-  });
-  socket.on('refreshUsersList', function(data) {
-    refreshUserList(data);
-  });
-  socket.on('updateMessages', function(data) {
-    var html = '',
-        index = 0;
-    for(;index<data.length;index++) {
-      html += $.template(templateMessagesListItem.innerHTML, data[index]);
-    }
-    messagesList.innerHTML = html;
-  });
-  socket.on('gameStarted', function(data) {
-    drawMap(gameCanvas, data.game);
-  });
-})();
+})(window);
 </script>
 </body>
 </html>
