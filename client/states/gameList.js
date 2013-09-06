@@ -1,5 +1,6 @@
 (function(exports) {
-	exports.gameList = function(initData, stateMachine, socket) {
+	exports.states = exports.states || {};
+	exports.states.gameList = function(initData, stateMachine, socket) {
 		var me = initData.me;
 		return {
 			onActivate: function() {

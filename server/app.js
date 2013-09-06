@@ -67,4 +67,13 @@ io.sockets.on('connection', function (socket) {
     var game = gaim.startGame(data.gameId);
     io.sockets.in(game.id).emit('gameStarted', {'game':game});
   });
+
+  socket.on('turnNext', function(data) {
+    if(data.host) {
+      var game = gaim.nextTurn(data.gameId);
+      if(game) {
+        io.sockets.in(game.id).emit('turnComplete', {'game':game});
+      }
+    }
+  });
 });

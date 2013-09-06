@@ -83,3 +83,11 @@ gaim.startGame = function(id) {
 	game.state = game.players.length == 2 ? STATE_PLAYING : STATE_LOBBY;
 	return game;
 };
+
+gaim.nextTurn = function(id) {
+	var game = this.games[id];
+	if(game) {
+
+	}
+	return game;
+}

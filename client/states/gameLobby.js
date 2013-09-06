@@ -1,5 +1,6 @@
 (function(exports) {
-	exports.gameLobby = function(initData, stateMachine, socket) {
+	exports.states = exports.states || {};
+	exports.states.gameLobby = function(initData, stateMachine, socket) {
 		var game = initData.game;
 		return {
 			onActivate: function() {
@@ -19,7 +20,7 @@
 					that.refreshUserList(players);
 				});
 				socket.on('gameStarted', function(data) {
-					stateMachine.push('game', data.game);
+					stateMachine.push('game', {game:data.game,host:initData.host});
 				});
 			},
 			onDeactivate: function () {

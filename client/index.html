@@ -2,6 +2,7 @@
 <head>
 <script src="/socket.io/socket.io.js"></script>
 <script src="/query.js"></script>
+<script src="/states/game.js"></script>
 <script src="/states/gameList.js"></script>
 <script src="/states/gameLobby.js"></script>
 <script src="/stateFactory.js"></script>
@@ -30,6 +31,7 @@
   </ul>
   <ul id="messagesList">
   </ul>
+  <div id="gameCounter"></div>
   <button id="startGameBtn">Start Game</button>
   <button id="endGameBtn">End Game</button>
   <canvas id="gameCanvas" width="800" height="800">
@@ -54,10 +56,17 @@ Welcome, {{id}}! This is a game created for the js13kgames competition
 <script>
 (function(w) {
   var socket = io.connect('http://localhost:8080'),
-      stateMachine = w.gameStates(w.stateFactory, socket);
+      stateMachine = w.gameStates(w.stateFactory, socket),
+      fps = 1000/60;
   socket.on('connected', function(me) {
     stateMachine.push("gameList", {'me':me});
   });
+  function update() {
+    stateMachine.update();
+    w.setTimeout(update, fps);
+  }
+
+  update();
 })(window);
 </script>
 </body>
