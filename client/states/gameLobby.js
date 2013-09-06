@@ -3,6 +3,7 @@
 		var game = initData.game;
 		return {
 			onActivate: function() {
+				var that = this;
 				$('#gameWrapper').attr('style', 'display:block');
 				$('#headerWrapper').attr('style', 'display:block');
 				this.refreshUserList(game.players);
@@ -10,13 +11,15 @@
 					$('#startGameBtn')
 						.attr('style', 'display:block')
 						.on('click', this.startGame);
+				} else {
+					$('#startGameBtn').attr('style', 'display:none');
 				}
-				socket.on('refreshUsersList', function(data) {
-					game = data.game;
-					this.refreshUserList(game.players);
+				socket.on('refreshUsersList', function(players) {
+					game.players = players;
+					that.refreshUserList(players);
 				});
 				socket.on('gameStarted', function(data) {
-					stateMachine.on('game', data);
+					stateMachine.push('game', data.game);
 				});
 			},
 			onDeactivate: function () {
@@ -46,7 +49,14 @@
 					alert('Must have two players in game.');
 				} else if(initData.host) {
 					$('#startGameBtn').attr('disabled', 'disabled');
-					socket.emit('startGame', {gameId:game.id});
+					socket.emit('startGame', {gameId:game.id}, function(data) {
+						if(data.success) {
+							stateMachine.push('game', data.game);
+						} else {
+							alert('Unable to start the game.');
+							$('#startGameBtn').attr('disabled', '');
+						}
+					});
 				} else {
 					alert("Only host can start game.");
 				}

@@ -11,7 +11,9 @@
 				socket.on('refreshGames', function(games) {
 					that.refreshGames(games);
 				});
-				$('#createGameBtn').on('click', this.createGame);
+				$('#createGameBtn').on('click', function() {
+					socket.emit('createGame', {'user':me}, that.gameCreated);
+				});
 			},
 			onDeactivate: function () {
 				$('#welcomeWrapper').attr('style', 'display:none');
@@ -26,9 +28,6 @@
 			},
 			onUpdate: function(isTop) {
 
-			},
-			createGame: function() {
-				socket.emit('createGame', {'user':me}, this.gameCreated);
 			},
 			gameCreated: function(data) {
 				if(data.success) {
