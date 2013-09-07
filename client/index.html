@@ -9,34 +9,42 @@
 <script src="/state.js"></script>
 <link rel="stylesheet" href="/s.css"></link>
 </head>
-<body id="body">
-<div id="headerWrapper">
-  Connecting...
-</div>
-<div id="welcomeWrapper">
-  <table>
-    <thead>
-      <tr>
-        <th>Game Name</th>
-        <th>Host</th>
-        <th>Players</th>
-      </tr>
-    </thead>
-    <tbody id="gamesList"></tbody>
-  </table>
-  <button id="createGameBtn">Create New Game</button>
-</div>
-<div id="gameWrapper" style="display:none">
-  <ul id="usersList">
-  </ul>
-  <ul id="messagesList">
-  </ul>
-  <div id="gameCounter"></div>
-  <button id="startGameBtn">Start Game</button>
-  <button id="endGameBtn">End Game</button>
-  <canvas id="gameCanvas" width="800" height="800">
-  </canvas>
-</div>
+<body>
+<div id="wrapper"></div>
+<script id="gameListTemplate" type="template">
+  <div id="headerWrapper">
+    Connecting...
+  </div>
+  <div id="welcomeWrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Game Name</th>
+          <th>Host</th>
+          <th>Players</th>
+        </tr>
+      </thead>
+      <tbody id="gamesList"></tbody>
+    </table>
+    <div>
+      <button id="createGameBtn">Create New Game</button>
+      <button id="refreshGamesBtn">Refresh Games</button
+    </div>
+  </div>
+</script>
+<script id="gameLobbyTemplate" type="template">
+  <div id="gameWrapper">
+    <ul id="usersList"></ul>
+    <button id="startGameBtn">Start Game</button>
+  </div>
+</script>
+<script id="gameTemplate" type="template">
+  <div id="gameWrapper">
+    <ul id="usersList"></ul>
+    <div id="gameCounter"></div>
+    <canvas id="gameCanvas"></canvas>
+  </div>
+</script>
 <script id="templateGamesListItem" type="template">
 <tr class="game-item" data-id="{{id}}">
   <td>{{id}}</td>
@@ -59,7 +67,8 @@ Welcome, {{id}}! This is a game created for the js13kgames competition
       stateMachine = w.gameStates(w.stateFactory, socket),
       fps = 1000/60;
   socket.on('connected', function(me) {
-    stateMachine.push("gameList", {'me':me});
+    w.me = me;
+    stateMachine.push("gameList");
   });
   function update() {
     stateMachine.update();

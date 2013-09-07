@@ -5,8 +5,7 @@
 		return {
 			onActivate: function() {
 				var that = this;
-				$('#gameWrapper').attr('style', 'display:block');
-				$('#headerWrapper').attr('style', 'display:block');
+				$('#wrapper').html($.template($('#gameLobbyTemplate').html(), {}));
 				this.refreshUserList(game.players);
 				if(initData.host) {
 					$('#startGameBtn')
@@ -24,8 +23,7 @@
 				});
 			},
 			onDeactivate: function () {
-				$('#gameWrapper').attr('style', 'display:none');
-				$('#headerWrapper').attr('style', 'display:none');
+				$('#wrapper').html('');
 				socket.removeAllListeners('refreshUsersList');
 				socket.removeAllListeners('gameStarted');
 			},

@@ -76,4 +76,12 @@ io.sockets.on('connection', function (socket) {
       }
     }
   });
+
+  socket.on('g/move', function(data) {
+    gaim.addMove(data.id, data.playerId, data.shipId, data.x, data.y);
+  });
+
+  socket.on('requestGames', function(data, callback) {
+    callback(gaim.getGameList(gaim.STATE.LOBBY));
+  });
 });

@@ -31,6 +31,12 @@
 		    		el.innerHTML = value;
 		    	});
 		    	return this;
+		    },
+		    context: function() {
+		    	return els.length > 0 ? els[0].getContext('2d') : null;
+		    },
+		    get: function() {
+		    	return els.length > 0 ? els[0] : null;
 		    }
 		};
 	};

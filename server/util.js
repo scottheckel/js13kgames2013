@@ -7,5 +7,14 @@ module.exports = {
 	},
 	randomInt: function(max) {
 		return Math.floor(max * Math.random());
+	},
+	lerp: function(a, b, t) {
+		return a+(b-a)*t;
+	},
+	dist: function(a, b) {
+		return Math.sqrt((a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y));
+	},
+	clamp: function(num, max, min) {
+		return Math.min(Math.max(num, min || 0), max);
 	}
 };

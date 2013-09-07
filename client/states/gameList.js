@@ -1,24 +1,26 @@
 (function(exports) {
 	exports.states = exports.states || {};
 	exports.states.gameList = function(initData, stateMachine, socket) {
-		var me = initData.me;
+		var me = exports.me;
 		return {
 			onActivate: function() {
 				var that = this;
-				$('#body').attr('class', 'gameList')
-				$('#welcomeWrapper').attr('style', 'display:block');
+				$('#wrapper').html($.template($('#gameListTemplate').html(), {}));
 				$('#headerWrapper').html($.template($('#templateWelcome').html(), me));
-				$('#headerWrapper').attr('style', 'display:block');
 				socket.on('refreshGames', function(games) {
 					that.refreshGames(games);
 				});
 				$('#createGameBtn').on('click', function() {
 					socket.emit('createGame', {'user':me}, that.gameCreated);
 				});
+				$('#refreshGamesBtn').on('click', function() {
+					socket.emit('requestGames', {}, function(data) {
+						that.refreshGames(data);
+					});
+				});
 			},
 			onDeactivate: function () {
-				$('#welcomeWrapper').attr('style', 'display:none');
-				$('#headerWrapper').attr('style', 'display:none');
+				$('#wrapper').html('');
 				socket.removeAllListeners('refreshGames');
 			},
 			onDestroy: function() {
