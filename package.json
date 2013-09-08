@@ -4,7 +4,9 @@
 	"author": "Scott Heckel",
 	"dependencies": {
 		"socket.io": "~0.9.16",
-		"grunt-cli": "~0.1.9"
+		"grunt-cli": "~0.1.9",
+		"grunt": "~0.4.1",
+		"grunt-contrib": "~0.7.0"
 	},
 	"engines": {
 		"node": "0.10.x"
