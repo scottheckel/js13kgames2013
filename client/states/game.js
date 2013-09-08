@@ -34,8 +34,8 @@
 					that.onKeyDown(e);
 				});
 				$canvas.on('click', function(e) {
-					var x = e.pageX,
-						y = e.pageY,
+					var x = e.pageX + camera.x,
+						y = e.pageY + camera.y,
 						move,
 						found = that.findEntity(x, y);
 					if(found) {
@@ -82,7 +82,7 @@
 
 			},
 			onUpdate: function(isTop) {
-				var seconds = 30,
+				var seconds = currentGame.turnTime,
 					that = this;
 				if(counter) {
 					seconds = Math.floor((counter - new Date()) / 1000);
@@ -92,7 +92,7 @@
 					highlighted = that.findEntity(mouse.x + camera.x, mouse.y + camera.y);
 				}
 				if(initData.host && seconds <= 0) {
-					socket.emit('turnNext', {gameId:initData.game.id, host: initData.host});
+					socket.emit('turnNext', {gameId:currentGame.id, host: initData.host});
 				}
 				that.redraw(currentGame);
 			},
@@ -104,7 +104,7 @@
 				moves = {};
 			},
 			redraw: function(game) {
-				var move;
+				var that = this;
 
 				context.save();
 				context.translate(-camera.x, -camera.y);
@@ -118,27 +118,48 @@
 
 				// Draw the ships
 				$.each(game.ships, function(entity, index) {
-					// Ship
-					context.strokeStyle = entity == selected ? '#ff0000' : (entity == highlighted ? '#ffff00' : entity.color);
-					context.beginPath();
-					context.arc(entity.x, entity.y, entity.w/2, 0, Math.PI*2, true);
-					context.stroke();
-
-					move = moves[entity.id];
-					if(move) {
-						context.strokeStyle = '#ffffff';
-						context.beginPath();
-						context.moveTo(entity.x, entity.y);
-						context.lineTo(move.x, move.y);
-						context.stroke();
-					}
+					that.drawShip(entity);
 				});
 
 				context.restore();
 			},
+			drawShip: function(ship) {
+				var move, target;
+
+				if(ship.state > 0) {
+					// Ship HP
+					context.fillText("HP:" + ship.hp, ship.x, ship.y - ship.w);
+
+					// Ship
+					context.strokeStyle = ship == selected ? '#ff0000' : (ship == highlighted ? '#ffff00' : ship.color);
+					context.beginPath();
+					context.arc(ship.x, ship.y, ship.w/2, 0, Math.PI*2, true);
+					context.stroke();
+
+					move = moves[ship.id];
+					if(move) {
+						context.strokeStyle = '#ffffff';
+						context.beginPath();
+						context.moveTo(ship.x, ship.y);
+						context.lineTo(move.x, move.y);
+						context.stroke();
+					}
+
+					if(ship.target) {
+						target = this.fingShipById(ship.target);
+						if(target) {
+							context.strokeStyle = ship.color;
+							context.beginPath();
+							context.moveTo(ship.x, ship.y);
+							context.lineTo(target.x, target.y);
+							context.stroke();
+						}
+					}
+				}
+			},
 			resetCounter: function() {
 				counter = new Date();
-				counter.setSeconds(counter.getSeconds() + 30);
+				counter.setSeconds(counter.getSeconds() + currentGame.turnTime);
 			},
 			findEntity: function(x, y) {
 				var found = null;
@@ -146,6 +167,15 @@
 					var halfW = entity.w / 2,
 						halfH = halfW;
 					if(entity.x - halfW <= x && entity.x + halfW >= x && entity.y - halfH <= y && entity.y + halfH >= y) {
+						found = entity;
+					}
+				});
+				return found;
+			},
+			fingShipById: function(shipId) {
+				var found = null;
+				$.each(currentGame.ships, function(entity, index) {
+					if(entity.id == shipId) {
 						found = entity;
 					}
 				});
