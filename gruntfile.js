@@ -1,5 +1,29 @@
 module.exports = function(grunt) {
 	grunt.initConfig({
+		cssmin: {
+			combine: {
+				files: {
+					'min/client/s.css' : 'client/s.css'
+				}
+			}
+		},
+		uglify: {
+			client: {
+				files: {
+					'min/client/all.js': ['client/states/*.js', 'client/*.js']
+				}
+			}
+		},
+		copy: {
+			client: {
+				src: 'client/*.html',
+				dest: 'min/'
+			},
+			server: {
+				src: 'server/**',
+				dest: 'min/'
+			}
+		},
 		compress: {
 			client: {
 				options: {
@@ -28,5 +52,5 @@ module.exports = function(grunt) {
 
 	grunt.loadNpmTasks('grunt-contrib');
 
-	grunt.registerTask('default', 'compress');
+	grunt.registerTask('default', ['cssmin', 'copy', 'uglify', 'compress']);
 };
