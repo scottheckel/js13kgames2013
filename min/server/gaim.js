@@ -29,8 +29,9 @@ gaim.createGame = function(creator) {
 		mapSize: 5,
 		ships: [],
 		projectiles: [],
-		entitySequence: 0,
-		moves: {}
+		entitySequence: 1,
+		moves: {},
+		turnTime: 15
 	};
 
 	// Add to our games
@@ -78,28 +79,10 @@ gaim.startGame = function(id) {
 };
 
 gaim.nextTurn = function(id) {
-	var game = this.games[id],
-		index = 0,
-		shipIndex = 0,
-		moves = {},
-		ship, move, t, d;
+	var game = this.games[id];
 	if(game) {
-		// Move stuff
-		for(shipIndex=0;shipIndex<game.ships.length;shipIndex++) {
-			ship = game.ships[shipIndex];
-			move = game.moves[ship.id];
-			if(move && ship.player == move.playerId && ship.id == move.shipId) {
-				t = util.clamp((ship.speed / util.dist(ship, move)),1);
-				ship.x = util.lerp(ship.x, move.x, t);
-				ship.y = util.lerp(ship.y, move.y, t);
-				if(t < 1) {
-					moves[ship.id] = move;
-				}
-			}
-		}
-
-		// Store left over moves
-		game.moves = moves;
+		handleMove(game);
+		handleCombat(game);
 	}
 	return game;
 };
@@ -134,11 +117,104 @@ function createShipEntity(player, game) {
 		id: game.entitySequence++,
 		color: player.color,
 		player: player.id,
-		speed: 50,
+		speed: 100,
+		state: 1,
 		type: ENTITY_SHIP,
+		hp: 100,
+		d: 5,
+		r: 100,
+		r2: 100*100,
 		x: util.randomInt(400),
 		y: util.randomInt(400),
 		w: 20,
-		h: 20
+		h: 20,
+		target: null
 	};
 }
+
+function handleMove(game) {
+	var index = 0,
+		shipIndex = 0,
+		moves = {},
+		ship, move, t, d;
+	// Move stuff
+	for(shipIndex=0;shipIndex<game.ships.length;shipIndex++) {
+		ship = game.ships[shipIndex];
+		move = game.moves[ship.id];
+		if(move && ship.player == move.playerId && ship.id == move.shipId) {
+			t = util.clamp((ship.speed / util.dist(ship, move)),1);
+			ship.x = util.lerp(ship.x, move.x, t);
+			ship.y = util.lerp(ship.y, move.y, t);
+			if(t < 1) {
+				moves[ship.id] = move;
+			}
+		}
+	}
+
+	// Store left over moves
+	game.moves = moves;
+}
+
+function getShipById(game, id) {
+	var index;
+	for(index=0;index<game.ships.length;index++) {
+		if(game.ships[index].id==id) {
+			return game.ships[index];
+		}
+	}
+	return null;
+}
+
+function handleCombat(game) {
+	var index = 0,
+		ship, target;
+	for(index;index<game.ships.length;index++) {
+		ship = game.ships[index];
+		if(ship.hp > 0) {
+			acquireTarget(game, ship);
+			if(ship.target) {
+				target = getShipById(game, ship.target);
+				target.hp -= ship.d;
+				if(target.hp <= 0) {
+					target.state = target.hp = 0;
+				}
+			}
+		}
+	}
+}
+
+function acquireTarget(game, ship) {
+	var index = 0,
+		target,
+		closest,
+		closestDist = ship.r + 1,
+		dist;
+	if(ship.target) {
+		target = getShipById(game, ship.target);
+		if(target.hp <= 0) {
+			ship.target = null;
+		} else {
+			// Verify still in range
+			dist = util.dist(ship, target);
+			if(dist > ship.r) {
+				ship.target = null;
+			}
+		}
+	}
+	if(!ship.target) {
+		for(;index<game.ships.length;index++) {
+			target = game.ships[index];
+			if(target.player != ship.player && target.hp > 0) {
+				dist = util.dist(ship, target);
+				if(dist <= ship.r && closestDist > dist) {
+					closestDist = dist;
+					closest = target;
+				}
+			}
+		}
+		if(closest) {
+			ship.target = closest.id;
+		}
+	}
+}
+

@@ -14,6 +14,9 @@ module.exports = {
 	dist: function(a, b) {
 		return Math.sqrt((a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y));
 	},
+	dist2: function(a, b) {
+		return (a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y);	
+	},
 	clamp: function(num, max, min) {
 		return Math.min(Math.max(num, min || 0), max);
 	}

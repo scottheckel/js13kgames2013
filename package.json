@@ -6,7 +6,10 @@
 		"socket.io": "~0.9.16",
 		"grunt-cli": "~0.1.9",
 		"grunt": "~0.4.1",
-		"grunt-contrib": "~0.7.0"
+		"grunt-contrib-cssmin": "~0.5.0",
+		"grunt-contrib-uglify": "~0.2.0",
+		"grunt-contrib-copy": "~0.4.0",
+		"grunt-contrib-compress": "~0.4.6"
 	},
 	"engines": {
 		"node": "0.10.x"
