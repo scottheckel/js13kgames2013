@@ -123,6 +123,9 @@
 				context.translate(-camera.x, -camera.y);
 				context.clearRect(camera.x, camera.y, camera.w, camera.h);
 
+				// Draw the background
+				exports.states.g.bg.render(context, camera);
+
 				// Draw the mouse
 				context.strokeStyle = '#ffff00';
 				context.beginPath();
@@ -141,6 +144,7 @@
 
 				if(ship.state > 0) {
 					// Ship HP
+					context.fillStyle = '#000000';
 					context.fillText("HP:" + ship.hp, ship.x, ship.y - ship.w);
 
 					// Ship

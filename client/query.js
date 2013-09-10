@@ -49,5 +49,11 @@
 			callback(array[index], index);
 		}
 	};
+	query.rand = function(upperBound) {
+		return Math.random() * upperBound;
+	};
+	query.randI = function(upperBound) {
+		return Math.floor(query.rand(upperBound) - 0.5);
+	};
 	exports.$ = query;
 })(window, document);
