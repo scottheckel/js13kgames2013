@@ -105,7 +105,16 @@
 
 				// Reset
 				this.resetCounter();
-				moves = {};
+				this.resetMoves();
+			},
+			resetMoves: function() {
+				var move;
+				$.each(currentGame.ships, function(ship, index) {
+					move = moves[ship.id];
+					if(move && move.x == ship.x && move.y == ship.y) {
+						moves[ship.id] = null;
+					}
+				});
 			},
 			redraw: function(game) {
 				var that = this;
