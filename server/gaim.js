@@ -1,4 +1,4 @@
-var gaim = module.exports = { games: {}, count: 0};
+var gaim = module.exports = { games: {}, moves: {}, count: 0};
 
 /* Game States */
 var STATE_LOBBY = 0,
@@ -30,12 +30,12 @@ gaim.createGame = function(creator) {
 		ships: [],
 		projectiles: [],
 		entitySequence: 1,
-		moves: {},
 		turnTime: 10
 	};
 
 	// Add to our games
 	this.games[game.id] = game;
+	this.moves[game.id] = {};
 	this.count++;
 
 	return game;
@@ -81,18 +81,18 @@ gaim.startGame = function(id) {
 gaim.nextTurn = function(id) {
 	var game = this.games[id];
 	if(game) {
-		handleMove(game);
+		this.moves[id] = handleMove(game, this.moves[id]);
 		handleCombat(game);
 	}
 	return game;
 };
 
 gaim.addMove = function(gameId, playerId, shipId, x, y) {
-	var game = this.games[gameId];
-	if(game) {
+	var moves = this.moves[gameId];
+	if(moves) {
 		// TODO: Verify Ship is owned by Player
 
-		game.moves[shipId] = {
+		moves[shipId] = {
 			playerId: playerId,
 			shipId: shipId,
 			x: x,
@@ -134,15 +134,15 @@ function createShipEntity(player, game) {
 	};
 }
 
-function handleMove(game) {
+function handleMove(game, moves) {
 	var index = 0,
 		shipIndex = 0,
-		moves = {},
+		nextMoves = {},
 		ship, move, t, d;
 	// Move stuff
 	for(shipIndex=0;shipIndex<game.ships.length;shipIndex++) {
 		ship = game.ships[shipIndex];
-		move = game.moves[ship.id];
+		move = moves[ship.id];
 		if(move && ship.player == move.playerId && ship.id == move.shipId) {
 			ship.px = ship.x;
 			ship.py = ship.y;
@@ -150,15 +150,15 @@ function handleMove(game) {
 			ship.x = util.lerp(ship.x, move.x, t);
 			ship.y = util.lerp(ship.y, move.y, t);
 			if(t < 1) {
-				moves[ship.id] = move;
+				nextMoves[ship.id] = move;
 			}
 		} else {
 			ship.px = ship.py = null;
 		}
 	}
 
-	// Store left over moves
-	game.moves = moves;
+	// Return the next set of moves
+	return nextMoves;
 }
 
 function getShipById(game, id) {
