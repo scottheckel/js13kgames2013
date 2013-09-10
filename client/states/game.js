@@ -37,25 +37,25 @@
 					var x = e.pageX + camera.x,
 						y = e.pageY + camera.y,
 						move,
-						found = that.findEntity(x, y);
+						found = that.findShip(x, y);
 					if(found) {
-						if(selected == found) {
+						if(selected == found.id) {
 							// Deselecting
 							selected = null;
 						} else if(found.player == me.id) {
 							// Selecting
-							selected = found;
+							selected = found.id;
 						}
 					} else if(selected) {
 						// Moving somewhere
 						move = {
 							id: initData.game.id,
 							playerId: me.id,
-							shipId: selected.id,
+							shipId: selected,
 							x: x,
 							y: y
 						}
-						moves[selected.id] = move;
+						moves[selected] = move;
 						socket.emit('g/move', move);
 					} else {
 						// Deselecting
@@ -83,13 +83,17 @@
 			},
 			onUpdate: function(isTop) {
 				var seconds = currentGame.turnTime,
-					that = this;
+					that = this,
+					temp;
 				if(counter) {
 					seconds = Math.floor((counter - new Date()) / 1000);
 					seconds = seconds < 0 ? 0 : seconds;
 					$('#gameCounter').html(seconds + " remaining");
 
-					highlighted = that.findEntity(mouse.x + camera.x, mouse.y + camera.y);
+					temp = that.findShip(mouse.x + camera.x, mouse.y + camera.y);
+					if(temp) {
+						highlighted = temp.id;
+					}
 				}
 				if(initData.host && seconds <= 0) {
 					socket.emit('turnNext', {gameId:currentGame.id, host: initData.host});
@@ -131,7 +135,7 @@
 					context.fillText("HP:" + ship.hp, ship.x, ship.y - ship.w);
 
 					// Ship
-					context.strokeStyle = ship == selected ? '#ff0000' : (ship == highlighted ? '#ffff00' : ship.color);
+					context.strokeStyle = ship.id == selected ? '#ff0000' : (ship.id == highlighted ? '#ffff00' : ship.color);
 					context.beginPath();
 					context.arc(ship.x, ship.y, ship.w/2, 0, Math.PI*2, true);
 					context.stroke();
@@ -169,7 +173,7 @@
 				counter = new Date();
 				counter.setSeconds(counter.getSeconds() + currentGame.turnTime);
 			},
-			findEntity: function(x, y) {
+			findShip: function(x, y) {
 				var found = null;
 				$.each(currentGame.ships, function(entity, index) {
 					var halfW = entity.w / 2,
