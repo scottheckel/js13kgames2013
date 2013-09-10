@@ -31,7 +31,7 @@ gaim.createGame = function(creator) {
 		projectiles: [],
 		entitySequence: 1,
 		moves: {},
-		turnTime: 15
+		turnTime: 10
 	};
 
 	// Add to our games
@@ -124,6 +124,8 @@ function createShipEntity(player, game) {
 		d: 5,
 		r: 100,
 		r2: 100*100,
+		px: null,
+		py: null,
 		x: util.randomInt(400),
 		y: util.randomInt(400),
 		w: 20,
@@ -142,12 +144,16 @@ function handleMove(game) {
 		ship = game.ships[shipIndex];
 		move = game.moves[ship.id];
 		if(move && ship.player == move.playerId && ship.id == move.shipId) {
+			ship.px = ship.x;
+			ship.py = ship.y;
 			t = util.clamp((ship.speed / util.dist(ship, move)),1);
 			ship.x = util.lerp(ship.x, move.x, t);
 			ship.y = util.lerp(ship.y, move.y, t);
 			if(t < 1) {
 				moves[ship.id] = move;
 			}
+		} else {
+			ship.px = ship.py = null;
 		}
 	}
 

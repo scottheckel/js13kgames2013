@@ -136,6 +136,14 @@
 					context.arc(ship.x, ship.y, ship.w/2, 0, Math.PI*2, true);
 					context.stroke();
 
+					if(ship.px != null && ship.py != null) {
+						context.strokeStyle = '#c0c0c0';
+						context.beginPath();
+						context.moveTo(ship.px, ship.py);
+						context.lineTo(ship.x, ship.y);
+						context.stroke();
+					}
+
 					move = moves[ship.id];
 					if(move) {
 						context.strokeStyle = '#ffffff';

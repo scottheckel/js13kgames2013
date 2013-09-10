@@ -15,10 +15,6 @@ gaim.STATE = {
 var ENTITY_SHIP = 0,
 	ENTITY_PROJECTILE = 1;
 
-var ENTITY_DEAD = 0,
-	ENTITY_DYING = 1,
-	ENTITY_LIVING = 2;
-
 var util = require('./util');
 
 gaim.createGame = function(creator) {
@@ -35,7 +31,7 @@ gaim.createGame = function(creator) {
 		projectiles: [],
 		entitySequence: 1,
 		moves: {},
-		turnTime: 8
+		turnTime: 10
 	};
 
 	// Add to our games
@@ -87,7 +83,6 @@ gaim.nextTurn = function(id) {
 	if(game) {
 		handleMove(game);
 		handleCombat(game);
-		handleDying(game.ships);
 	}
 	return game;
 };
@@ -123,12 +118,14 @@ function createShipEntity(player, game) {
 		color: player.color,
 		player: player.id,
 		speed: 100,
-		state: ENTITY_LIVING,
+		state: 1,
 		type: ENTITY_SHIP,
 		hp: 100,
 		d: 5,
 		r: 100,
 		r2: 100*100,
+		px: null,
+		py: null,
 		x: util.randomInt(400),
 		y: util.randomInt(400),
 		w: 20,
@@ -147,12 +144,16 @@ function handleMove(game) {
 		ship = game.ships[shipIndex];
 		move = game.moves[ship.id];
 		if(move && ship.player == move.playerId && ship.id == move.shipId) {
+			ship.px = ship.x;
+			ship.py = ship.y;
 			t = util.clamp((ship.speed / util.dist(ship, move)),1);
 			ship.x = util.lerp(ship.x, move.x, t);
 			ship.y = util.lerp(ship.y, move.y, t);
 			if(t < 1) {
 				moves[ship.id] = move;
 			}
+		} else {
+			ship.px = ship.py = null;
 		}
 	}
 
@@ -175,18 +176,13 @@ function handleCombat(game) {
 		ship, target;
 	for(index;index<game.ships.length;index++) {
 		ship = game.ships[index];
-		// TODO: SH - For some reason ships that have died this turn aren't attacking
-		if(ship.hp == 0) {
-			console.log("State:"+ship.state);
-		}
-		if(ship.state > ENTITY_DEAD) {
+		if(ship.hp > 0) {
 			acquireTarget(game, ship);
 			if(ship.target) {
 				target = getShipById(game, ship.target);
 				target.hp -= ship.d;
 				if(target.hp <= 0) {
-					target.state = ENTITY_DYING;
-					target.hp = 0;
+					target.state = target.hp = 0;
 				}
 			}
 		}
@@ -227,15 +223,4 @@ function acquireTarget(game, ship) {
 		}
 	}
 }
-
-function handleDying(ships) {
-	var index = 0;
-	for(index;index<ships.length;index++) {
-		if(ships[index].state == ENTITY_DYING) {
-			ships[index].state = ENTITY_DEAD;
-		}
-	}
-}
-
-
 
