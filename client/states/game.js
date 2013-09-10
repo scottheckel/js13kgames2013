@@ -101,7 +101,7 @@
 				that.redraw(currentGame);
 			},
 			turnComplete: function(data) {
-				currentGame = data.game;
+				currentGame.ships = data.ships;
 
 				// Reset
 				this.resetCounter();

@@ -72,7 +72,7 @@ io.sockets.on('connection', function (socket) {
     if(data.host) {
       var game = gaim.nextTurn(data.gameId);
       if(game) {
-        io.sockets.in(game.id).emit('turnComplete', {'game':game});
+        io.sockets.in(game.id).emit('turnComplete', {'ships':game.ships});
       }
     }
   });
