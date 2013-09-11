@@ -15,6 +15,11 @@ gaim.STATE = {
 var ENTITY_SHIP = 0,
 	ENTITY_PROJECTILE = 1;
 
+
+var SHIP_BATTLESHIP = 'b',
+	SHIP_CORVETTE = 'c',
+	SHIP_FIGHTER = 'f';
+
 var util = require('./util');
 
 gaim.createGame = function(creator) {
@@ -116,32 +121,66 @@ gaim.addMove = function(gameId, playerId, shipId, x, y) {
 function populateEntities(game, players) {
 	var index = 0;
 	for(;index<players.length;index++) {
-		game.ships.push(createShipEntity(players[index], game));
-		game.ships.push(createShipEntity(players[index], game));
-		game.ships.push(createShipEntity(players[index], game));
-		game.ships.push(createShipEntity(players[index], game));
-		game.ships.push(createShipEntity(players[index], game));
+		game.ships.push(createShipEntity(players[index], game, SHIP_BATTLESHIP));
+		game.ships.push(createShipEntity(players[index], game, SHIP_BATTLESHIP));
+		game.ships.push(createShipEntity(players[index], game, SHIP_CORVETTE));
+		game.ships.push(createShipEntity(players[index], game, SHIP_CORVETTE));
+		game.ships.push(createShipEntity(players[index], game, SHIP_CORVETTE));
+		game.ships.push(createShipEntity(players[index], game, SHIP_CORVETTE));
+		game.ships.push(createShipEntity(players[index], game, SHIP_FIGHTER));
+		game.ships.push(createShipEntity(players[index], game, SHIP_FIGHTER));
 	}
 }
 
-function createShipEntity(player, game) {
+function createShipEntity(player, game, type) {
+	var hp, damage, range, speed, w, h;
+
+	switch(type) {
+		case 'b':
+			hp = 200;
+			damage = 10;
+			range = 200;
+			speed = 50;
+			w = 30;
+			h = 30;
+			break;
+		case 'f':
+			hp = 100;
+			damage = 2;
+			range = 50;
+			speed = 150;
+			w = 10;
+			h = 10;
+			break;
+		case 'c':
+			hp = 150;
+			damage = 5;
+			range = 100;
+			speed = 100;
+			w = 20;
+			h = 20;
+			break;
+	} 
+
 	return {
 		id: game.entitySequence++,
 		color: player.color,
 		player: player.id,
-		speed: 100,
+		v: speed,
 		state: 1,
 		type: ENTITY_SHIP,
-		hp: 100,
-		d: 5,
-		r: 100,
-		r2: 100*100,
+		hp: hp,
+		mHp: hp,
+		d: damage,
+		r: range,
+		r2: range*range,
 		px: null,
 		py: null,
-		x: util.randomInt(400),
-		y: util.randomInt(400),
-		w: 20,
-		h: 20,
+		t: type,
+		x: util.randomInt(800),
+		y: util.randomInt(800),
+		w: w,
+		h: h,
 		target: null
 	};
 }
@@ -158,7 +197,7 @@ function handleMove(game, moves) {
 		if(move && ship.player == move.playerId && ship.id == move.shipId) {
 			ship.px = ship.x;
 			ship.py = ship.y;
-			t = util.clamp((ship.speed / util.dist(ship, move)),1);
+			t = util.clamp((ship.v / util.dist(ship, move)),1);
 			ship.x = util.lerp(ship.x, move.x, t);
 			ship.y = util.lerp(ship.y, move.y, t);
 			if(t < 1) {

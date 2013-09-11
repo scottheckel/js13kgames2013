@@ -36,6 +36,7 @@ function handler (req, res) {
 io.sockets.on('connection', function (socket) {
   var user = {
     id: util.guid(),
+    name: randomName(),
     client: socket.id
   };
 
@@ -43,29 +44,36 @@ io.sockets.on('connection', function (socket) {
   socket.emit('refreshGames', gaim.getGameList(gaim.STATE.LOBBY));
 
   socket.on('joinGame', function (data, callback) {
-    var game = gaim.joinGame(data.gameId, data.user);
+    var game = gaim.joinGame(data.gameId, data.user),
+        players;
     if(game) {
+      players = gaim.getPlayersList(game.id);
+
       socket.join(game.id);
-      socket.broadcast.to(game.id).emit('refreshUsersList', game.players);
-      callback({'success':true,'game':game});
+      socket.broadcast.to(game.id).emit('refreshUsersList', players);
+      callback({'success':true,'game':game,'players':players});
     } else {
       callback({'success':false});
     }
   });
 
   socket.on('createGame', function (data, callback) {
-    var game = gaim.createGame(data.user);
+    var game = gaim.createGame(data.user),
+        players;
     if(game) {
+      players = gaim.getPlayersList(game.id);
+
       socket.join(game.id);
-      callback({'success':true,'game':game});
+      callback({'success':true,'game':game,'players':players});
     } else {
       callback({'success':false});
     }
   });
 
   socket.on('startGame', function (data) {
-    var game = gaim.startGame(data.gameId);
-    io.sockets.in(game.id).emit('gameStarted', {'game':game});
+    var game = gaim.startGame(data.gameId),
+        players = gaim.getPlayersList(data.gameId);
+    io.sockets.in(game.id).emit('gameStarted', {'game':game,'players':players});
   });
 
   socket.on('turnNext', function(data) {
@@ -85,3 +93,16 @@ io.sockets.on('connection', function (socket) {
     callback(gaim.getGameList(gaim.STATE.LOBBY));
   });
 });
+
+
+function randomName() {
+  var words = [
+    'Cat','Dog','Bird','Pig','Horse','Monkey','Giraffe','Elephant','Rhino','Badger','Turtle',
+    'Green','Orange','Steel','Grey','Red','Crimson','Midnight','Concrete','Blue','Yellow','Golden','Brown',
+    'Running','Sitting','Laughing','Plodding','Fleeting','Sneaky',
+    'North','South','East','West','Downtown','Carolina','Dakota','York','Nevada','Washington','California','Iowa','Ohio','Michigan','Minnesota','Wisconsin',
+    'Baby','Object','Car','Sporty','Mountain','Cable','Semi','Paint','Time','VHS','Coffeee','Tea','Trunk','Chair','Bin',
+    'Hot','Cold','Small','Big','Salty'
+  ];
+  return words[util.randomInt(words.length)]+words[util.randomInt(words.length)]+util.randomInt(1000);  
+}

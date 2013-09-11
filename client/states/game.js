@@ -92,9 +92,8 @@
 					$('#gameCounter').html(seconds + " remaining");
 
 					temp = that.findShip(mouse.x + camera.x, mouse.y + camera.y);
-					if(temp) {
-						highlighted = temp.id;
-					}
+					highlighted = temp ? temp.id : null;
+					
 				}
 				if(initData.host && seconds <= 0) {
 					socket.emit('turnNext', {gameId:currentGame.id, host: initData.host});
@@ -118,14 +117,20 @@
 				});
 			},
 			redraw: function(game) {
-				var that = this;
+				var that = this,
+					graphics = exports.states.g;
 
 				context.save();
 				context.translate(-camera.x, -camera.y);
 				context.clearRect(camera.x, camera.y, camera.w, camera.h);
 
 				// Draw the background
-				exports.states.g.bg.render(context, camera);
+				graphics.bg.render(context, camera);
+
+				// Draw the ship health bars
+				$.each(game.ships, function(entity) {
+					graphics.ship.renderHp(context, entity, entity.id == selected || entity.id == highlighted);
+				});
 
 				// Draw the mouse
 				context.strokeStyle = '#ffff00';
@@ -134,7 +139,7 @@
 				context.stroke();
 
 				// Draw the ships
-				$.each(game.ships, function(entity, index) {
+				$.each(game.ships, function(entity) {
 					that.drawShip(entity);
 				});
 
@@ -210,17 +215,20 @@
 			onKeyDown: function(e) {
 				var key = e.keyCode;
 				switch(key) {
+					case 27: // escape
+						selected = null;
+						break;
 					case 37: // left
-						camera.x++;
+						camera.x += 3;
 						break;
 					case 38: // up
-						camera.y++;
+						camera.y += 3;
 						break;
 					case 39: //right
-						camera.x--;
+						camera.x -= 3;
 						break;
 					case 40: // down
-						camera.y--;
+						camera.y -= 3;
 						break;
 				}
 			}
