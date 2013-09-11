@@ -12,7 +12,8 @@
 			currentPlayers = initData.players,
 			mouse = {x:0,y:0},
 			camera = {x:0,y:0,w:0,h:0}
-			moves = {};
+			moves = {},
+			toggleHp = true;
 		return {
 			onActivate: function() {
 				this.resetCounter();
@@ -129,7 +130,10 @@
 
 				// Draw the ship health bars
 				$.each(game.ships, function(entity) {
-					graphics.ship.renderHp(context, entity, entity.id == selected || entity.id == highlighted);
+					var active = entity.id == selected || entity.id == highlighted;
+					if(toggleHp || active) {
+						graphics.ship.renderHp(context, entity, active);
+					}
 				});
 
 				// Draw the mouse
@@ -217,6 +221,9 @@
 				switch(key) {
 					case 27: // escape
 						selected = null;
+						break;
+					case 32: // spacebar
+						toggleHp = !toggleHp;
 						break;
 					case 37: // left
 						camera.x += 3;
