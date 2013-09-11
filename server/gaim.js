@@ -1,4 +1,4 @@
-var gaim = module.exports = { games: {}, moves: {}, count: 0};
+var gaim = module.exports = { games: {}, moves: {}, players: {}, count: 0};
 
 /* Game States */
 var STATE_LOBBY = 0,
@@ -24,7 +24,7 @@ gaim.createGame = function(creator) {
 	var game = {
 		id: util.guid(),
 		host: creator,
-		players: [creator],
+		players: [creator.id],
 		state: STATE_LOBBY,
 		mapSize: 5,
 		ships: [],
@@ -36,6 +36,7 @@ gaim.createGame = function(creator) {
 	// Add to our games
 	this.games[game.id] = game;
 	this.moves[game.id] = {};
+	this.players[creator.id] = creator;
 	this.count++;
 
 	return game;
@@ -45,7 +46,8 @@ gaim.joinGame = function(id, player) {
 	var game = this.games[id];
 	if(game && game.players.length < 2 && game.state == STATE_LOBBY) {
 		player.color = '#00ff00';
-		game.players.push(player);
+		this.players[player.id] = player;
+		game.players.push(player.id);
 	} else {
 		game = null;
 	}
@@ -69,11 +71,21 @@ gaim.getGameList = function(filter) {
 	return games;
 };
 
+gaim.getPlayersList = function(id) {
+	var game = this.games[id],
+		players = [],
+		index = 0;
+	for(;index<game.players.length;index++) {
+		players.push(this.players[game.players[index]]);
+	}
+	return players;
+};
+
 gaim.startGame = function(id) {
 	var game = this.games[id];
 	if(game) {
 		game.state = game.players.length == 2 ? STATE_PLAYING : STATE_LOBBY;
-		populateEntities(game);
+		populateEntities(game, this.getPlayersList(id));
 	}
 	return game;
 };
@@ -101,14 +113,14 @@ gaim.addMove = function(gameId, playerId, shipId, x, y) {
 	}
 };
 
-function populateEntities(game) {
+function populateEntities(game, players) {
 	var index = 0;
-	for(;index<game.players.length;index++) {
-		game.ships.push(createShipEntity(game.players[index], game));
-		game.ships.push(createShipEntity(game.players[index], game));
-		game.ships.push(createShipEntity(game.players[index], game));
-		game.ships.push(createShipEntity(game.players[index], game));
-		game.ships.push(createShipEntity(game.players[index], game));
+	for(;index<players.length;index++) {
+		game.ships.push(createShipEntity(players[index], game));
+		game.ships.push(createShipEntity(players[index], game));
+		game.ships.push(createShipEntity(players[index], game));
+		game.ships.push(createShipEntity(players[index], game));
+		game.ships.push(createShipEntity(players[index], game));
 	}
 }
 

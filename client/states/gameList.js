@@ -34,7 +34,7 @@
 			},
 			gameCreated: function(data) {
 				if(data.success) {
-		          stateMachine.push("gameLobby", { game: data.game, host: true });
+		          stateMachine.push("gameLobby", { game: data.game, players: data.players, host: true });
 		        } else {
 		          /* TODO: SH - Can't create */
 		          alert('unable to create game');
@@ -42,7 +42,7 @@
 			},
 			gameJoined: function(data) {
 				if(data.success) {
-					stateMachine.push('gameLobby', { game: data.game, host: false });
+					stateMachine.push('gameLobby', { game: data.game, players: data.players, host: false });
 				} else {
 					alert('Unable to join the game.');
 				}

@@ -32,6 +32,10 @@
       <button id="refreshGamesBtn">Refresh Games</button
     </div>
   </div>
+  <div id="playerDetailsWrapper" style="display:none">
+    <p><label for="moniker">Moniker</label><input type="text" id="moniker" name="moniker"/></p>
+    <p><button id="setNameBtn">Set Name</button></p>
+  </div>
 </script>
 <script id="gameLobbyTemplate" type="template">
   <div id="gameWrapper">
@@ -54,10 +58,10 @@
 </tr>
 </script>
 <script id="templateWelcome" type="template">
-Welcome, {{id}}! This is a game created for the js13kgames competition
+Just Ships Fighting - Welcome, {{name}}!
 </script>
 <script id="templateUsersListItem" type="template">
-<li style="color:{{color}}">User: {{id}}</li>
+<li style="color:{{color}}">User: {{name}}</li>
 </script>
 <script id="templateMessagesListItem" type="template">
 <li>{{msg}}</li>

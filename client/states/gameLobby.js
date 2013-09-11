@@ -1,12 +1,13 @@
 (function(exports) {
 	exports.states = exports.states || {};
 	exports.states.gameLobby = function(initData, stateMachine, socket) {
-		var game = initData.game;
+		var game = initData.game,
+			players = initData.players;
 		return {
 			onActivate: function() {
 				var that = this;
 				$('#wrapper').html($.template($('#gameLobbyTemplate').html(), {}));
-				this.refreshUserList(game.players);
+				this.refreshUserList(players);
 				if(initData.host) {
 					$('#startGameBtn')
 						.attr('style', 'display:block')
@@ -14,12 +15,12 @@
 				} else {
 					$('#startGameBtn').attr('style', 'display:none');
 				}
-				socket.on('refreshUsersList', function(players) {
-					game.players = players;
-					that.refreshUserList(players);
+				socket.on('refreshUsersList', function(p) {
+					players = p;
+					that.refreshUserList(p);
 				});
 				socket.on('gameStarted', function(data) {
-					stateMachine.push('game', {game:data.game,host:initData.host});
+					stateMachine.push('game', {game:data.game,players:players,host:initData.host});
 				});
 			},
 			onDeactivate: function () {
@@ -44,7 +45,7 @@
 				$('#usersList').html(html);
 			},
 			startGame: function() {
-				if(game.players.length != 2) {
+				if(players.length != 2) {
 					alert('Must have two players in game.');
 				} else if(initData.host) {
 					$('#startGameBtn').attr('disabled', 'disabled');

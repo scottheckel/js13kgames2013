@@ -9,6 +9,7 @@
 			selected = null,
 			highlighted = null,
 			currentGame = initData.game,
+			currentPlayers = initData.players,
 			mouse = {x:0,y:0},
 			camera = {x:0,y:0,w:0,h:0}
 			moves = {};
