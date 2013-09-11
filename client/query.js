@@ -18,6 +18,9 @@
 				return this;
 			},
 		    attr: function(name, value) {
+		    	if(value == undefined) {
+		    		return els.length > 0 ? els[0].getAttribute(name) : '';
+		    	}
 		    	query.each(els, function(el) {
 		    		el.setAttribute(name, value);
 		    	});
