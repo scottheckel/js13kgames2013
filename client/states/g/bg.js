@@ -16,20 +16,25 @@
 
 	function renderStarfield(context, camera) {
 		var index = 0,
-			x, y;
+			x, y, dX, dY, maxX, maxY;
 		if(!stars) {
 			initStarfield(camera);
 		}
 
+		dX = (camera.x % camera.w)*0.75;
+		dY = (camera.y % camera.h)*0.75;
+
 		for(;index<stars.length;index++) {
 			// TODO: SH - I should probably be directly drawing to canvas pixel data
-			// TODO: SH - don't move the stars with the camera (it should loop)
-			// TODO: SH - should stars be on different plains when we move the camera?
 			// TODO: SH - glimmer at different rates
 
 			star = stars[index];
 			context.fillStyle = color(star);
-			context.fillRect(star.x+camera.x, star.y+camera.y, star.s, star.s);
+			x = star.x - dX;
+			x = x < 0 ? camera.w + x : (x >= camera.w ? x - camera.w : x);
+			y = star.y - dY;
+			y = y < 0 ? camera.h + y : (y >= camera.h ? y - camera.h : y);
+			context.fillRect(x + camera.x, y + camera.y, star.s, star.s);
 		}
 
 		t = loop(t + delta, 0, 1);
