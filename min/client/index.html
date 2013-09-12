@@ -77,7 +77,7 @@ Just Ships Fighting - Welcome, {{name}}!
     stateMachine.push("gameList");
   });
   function update() {
-    stateMachine.update();
+    stateMachine.update(fps);
     w.setTimeout(update, fps);
   }
 

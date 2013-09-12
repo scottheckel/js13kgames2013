@@ -163,53 +163,11 @@
 				});
 
 				// Draw the ships
-				$.each(game.ships, function(entity) {
-					that.drawShip(entity);
+				$.each(game.ships, function(ship) {
+					graphics.ship.render(context, ship, shipLocations[ship.id], highlighted, selected, that.fingShipById);
 				});
 
 				context.restore();
-			},
-			drawShip: function(ship) {
-				var move, target, pos;
-
-				if(ship.state > 0) {
-					pos = shipLocations[ship.id];
-
-					// Ship
-					context.strokeStyle = ship.id == selected ? '#ff0000' : (ship.id == highlighted ? '#ffff00' : ship.color);
-					context.beginPath();
-					context.arc(pos.x, pos.y, ship.w/2, 0, Math.PI*2, true);
-					context.stroke();
-
-					if(ship.px != null && ship.py != null) {
-						context.strokeStyle = '#c0c0c0';
-						context.beginPath();
-						context.moveTo(ship.px, ship.py);
-						context.lineTo(pos.x, pos.y);
-						context.stroke();
-					}
-
-					move = moves[ship.id];
-					if(move) {
-						exports.states.g.ship.renderArrow(context, pos, move, 'rgba(255,255,255,0.4)');
-						// context.strokeStyle = '#ffffff';
-						// context.beginPath();
-						// context.moveTo(pos.x, pos.y);
-						// context.lineTo(move.x, move.y);
-						// context.stroke();
-					}
-
-					if(ship.target) {
-						target = this.fingShipById(ship.target);
-						if(target) {
-							context.strokeStyle = ship.color;
-							context.beginPath();
-							context.moveTo(pos.x, pos.y);
-							context.lineTo(target.x, target.y);
-							context.stroke();
-						}
-					}
-				}
 			},
 			resetCounter: function() {
 				counter = new Date();

@@ -4,6 +4,42 @@
 	exports.states = exports.states || {};
 	exports.states.g = exports.states.g || {};
 	exports.states.g.ship = {
+		render: function(context, ship, pos, highlighted, selected, getShip) {
+			// Dead
+			if(ship.state == 0) {
+				return;
+			}
+
+			// Ship
+			context.strokeStyle = ship.id == selected ? '#ff0000' : (ship.id == highlighted ? '#ffff00' : ship.color);
+			context.beginPath();
+			context.arc(pos.x, pos.y, ship.w/2, 0, Math.PI*2, true);
+			context.stroke();
+
+			if(ship.px != null && ship.py != null) {
+				context.strokeStyle = '#c0c0c0';
+				context.beginPath();
+				context.moveTo(ship.px, ship.py);
+				context.lineTo(pos.x, pos.y);
+				context.stroke();
+			}
+
+			move = moves[ship.id];
+			if(move) {
+				exports.states.g.ship.renderArrow(context, pos, move, 'rgba(255,255,255,0.4)');
+			}
+
+			if(ship.target) {
+				target = getShip(ship.target);
+				if(target) {
+					context.strokeStyle = ship.color;
+					context.beginPath();
+					context.moveTo(pos.x, pos.y);
+					context.lineTo(target.x, target.y);
+					context.stroke();
+				}
+			}
+		},
 		renderHp: function(context, ship, pos, active) {
 			if(ship.hp <= 0) {
 				return;
