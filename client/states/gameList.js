@@ -11,6 +11,7 @@
 					that.refreshGames(games);
 				});
 				$('#createGameBtn').on('click', function() {
+					$('#createGameBtn').attr('disabled', 'disabled');
 					socket.emit('createGame', {'user':me}, that.gameCreated);
 				});
 				$('#refreshGamesBtn').on('click', function() {
@@ -36,8 +37,8 @@
 				if(data.success) {
 		          stateMachine.push("gameLobby", { game: data.game, players: data.players, host: true });
 		        } else {
-		          /* TODO: SH - Can't create */
-		          alert('unable to create game');
+		        	alert('Unable to create game.');
+		        	$('#createGameBtn').attr('disabled', '');
 		        }
 			},
 			gameJoined: function(data) {
@@ -52,7 +53,7 @@
 			        index = 0,
 		        	that = this;
 			    for(;index<games.length;index++) {
-			      html += $.template($('#templateGamesListItem').html(), {id: games[index].id, host: games[index].host.id, count: games[index].count});
+			      html += $.template($('#templateGamesListItem').html(), {id: games[index].id, host: games[index].host.name, count: games[index].count});
 			    }
 			    $('#gamesList').html(html);
 			    $('.game-item').on('click', function() {
