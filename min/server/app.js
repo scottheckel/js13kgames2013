@@ -97,11 +97,11 @@ io.sockets.on('connection', function (socket) {
 
 function randomName() {
   var words = [
-    'Cat','Dog','Bird','Pig','Horse','Monkey','Giraffe','Elephant','Rhino','Badger','Turtle',
-    'Green','Orange','Steel','Grey','Red','Crimson','Midnight','Concrete','Blue','Yellow','Golden','Brown',
+    'Cat','Dog','Bird','Pig','Horse','Monkey','Giraffe','Elephant','Rhino','Badger','Turtle','Panther','Spider','Tortuga',
+    'Green','Orange','Steel','Grey','Red','Crimson','Midnight','Concrete','Blue','Yellow','Golden','Brown','Black','Pink',
     'Running','Sitting','Laughing','Plodding','Fleeting','Sneaky',
-    'North','South','East','West','Downtown','Carolina','Dakota','York','Nevada','Washington','California','Iowa','Ohio','Michigan','Minnesota','Wisconsin',
-    'Baby','Object','Car','Sporty','Mountain','Cable','Semi','Paint','Time','VHS','Coffeee','Tea','Trunk','Chair','Bin',
+    'North','South','East','West','Downtown','Carolina','Dakota','York','Nevada','Washington','California','Iowa','Ohio','Michigan','Minnesota','Wisconsin','Hampshire','Falls','Edwards','Franklin','Athens','Oak','Bern','Berlin','London','Shanghai','Paris','Rio','Seattle','Tokyo',
+    'Baby','Object','Car','Sporty','Mountain','Cable','Semi','Paint','Time','VHS','Coffeee','Tea','Trunk','Chair','Shoe','Grand','Gum','Saint',
     'Hot','Cold','Small','Big','Salty'
   ];
   return words[util.randomInt(words.length)]+words[util.randomInt(words.length)]+util.randomInt(1000);  
