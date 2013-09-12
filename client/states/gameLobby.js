@@ -54,6 +54,8 @@
 			startGame: function() {
 				if(players.length != 2) {
 					alert('Must have two players in game.');
+				} else if(players.length != game.ready.length) {
+					alert('All players must be ready.');
 				} else if(initData.host) {
 					$('#startGameBtn').attr('disabled', 'disabled');
 					socket.emit('startGame', {gameId:game.id}, function(data) {
