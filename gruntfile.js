@@ -14,11 +14,19 @@ module.exports = function(grunt) {
 				}
 			}
 		},
-		copy: {
+		htmlmin: {
 			client: {
-				src: 'client/*.html',
-				dest: 'min/'
-			},
+				options: {
+					removeComments: true,
+					collapseWhitespace: true,
+					removeAttributeQuotes: true
+				},
+				files: {
+					'min/client/index.html': 'client/index.html'
+				}
+			}
+		},
+		copy: {
 			server: {
 				src: 'server/**',
 				dest: 'min/'
@@ -54,6 +62,7 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-uglify');
 	grunt.loadNpmTasks('grunt-contrib-copy');
 	grunt.loadNpmTasks('grunt-contrib-compress');
+	grunt.loadNpmTasks('grunt-contrib-htmlmin');
 
-	grunt.registerTask('default', ['cssmin', 'copy', 'uglify', 'compress']);
+	grunt.registerTask('default', ['cssmin', 'htmlmin', 'copy', 'uglify', 'compress']);
 };
