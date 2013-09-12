@@ -36,9 +36,9 @@
 				this.push(state);
 				return oldState;
 			},
-			update: function() {
+			update: function(fps) {
 				$.each(stack, function(state, index) {
-					state.onUpdate(index == stack.length - 1);
+					state.onUpdate(index == stack.length - 1, fps);
 				});
 			}
 		};

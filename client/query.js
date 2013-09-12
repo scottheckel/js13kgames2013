@@ -58,5 +58,8 @@
 	query.randI = function(upperBound) {
 		return Math.floor(query.rand(upperBound) - 0.5);
 	};
+	query.lerp = function(a, b, t) {
+		return a+(b-a)*t;
+	};
 	exports.$ = query;
 })(window, document);

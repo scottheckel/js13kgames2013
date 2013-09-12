@@ -13,10 +13,14 @@
 			mouse = {x:0,y:0},
 			camera = {x:0,y:0,w:0,h:0}
 			moves = {},
-			toggleHp = true;
+			toggleHp = true,
+			shipLocations = {},
+			animationLength = currentGame.turnTime * 500; // Animation is half the current turn
 		return {
 			onActivate: function() {
+				this.resetShips();
 				this.resetCounter();
+
 				var that = this;
 				$('#wrapper').html($.template($('#gameTemplate').html(), {}));
 
@@ -83,7 +87,7 @@
 			onPause: function(on) {
 
 			},
-			onUpdate: function(isTop) {
+			onUpdate: function(isTop, delta) {
 				var seconds = currentGame.turnTime,
 					that = this,
 					temp;
@@ -94,26 +98,47 @@
 
 					temp = that.findShip(mouse.x + camera.x, mouse.y + camera.y);
 					highlighted = temp ? temp.id : null;
-					
+
+					// Animate the ships that are moving
+					that.animateShips(delta/animationLength);					
 				}
 				if(initData.host && seconds <= 0) {
 					socket.emit('turnNext', {gameId:currentGame.id, host: initData.host});
 				}
 				that.redraw(currentGame);
 			},
+			animateShips: function(delta) {
+				$.each(currentGame.ships, function(ship) {
+					var pos = shipLocations[ship.id];
+					if(pos) {
+						pos.t = Math.min(pos.t + delta, 1);
+						pos.x = $.lerp(pos.x, ship.x, pos.t);
+						pos.y = $.lerp(pos.y, ship.y, pos.t);
+					}
+				});
+			},
 			turnComplete: function(data) {
 				currentGame.ships = data.ships;
 
 				// Reset
 				this.resetCounter();
-				this.resetMoves();
+				this.resetShips();
 			},
-			resetMoves: function() {
-				var move;
-				$.each(currentGame.ships, function(ship, index) {
+			resetShips: function() {
+				$.each(currentGame.ships, function(ship) {
+					var move;
+
+					// Reset Move
 					move = moves[ship.id];
 					if(move && move.x == ship.x && move.y == ship.y) {
 						moves[ship.id] = null;
+					}
+
+					// Reset Animated Location
+					shipLocations[ship.id] = {
+						x: ship.px || ship.x,
+						y: ship.py || ship.y,
+						t: 0
 					}
 				});
 			},
@@ -130,17 +155,12 @@
 
 				// Draw the ship health bars
 				$.each(game.ships, function(entity) {
-					var active = entity.id == selected || entity.id == highlighted;
+					var active = entity.id == selected || entity.id == highlighted,
+						pos = shipLocations[entity.id];
 					if(toggleHp || active) {
-						graphics.ship.renderHp(context, entity, active);
+						graphics.ship.renderHp(context, entity, pos, active);
 					}
 				});
-
-				// Draw the mouse
-				context.strokeStyle = '#ffff00';
-				context.beginPath();
-				context.arc(camera.x+mouse.x, camera.y+mouse.y, 5, 0, Math.PI*2, true);
-				context.stroke();
 
 				// Draw the ships
 				$.each(game.ships, function(entity) {
@@ -150,24 +170,22 @@
 				context.restore();
 			},
 			drawShip: function(ship) {
-				var move, target;
+				var move, target, pos;
 
 				if(ship.state > 0) {
-					// Ship HP
-					context.fillStyle = '#000000';
-					context.fillText("HP:" + ship.hp, ship.x, ship.y - ship.w);
+					pos = shipLocations[ship.id];
 
 					// Ship
 					context.strokeStyle = ship.id == selected ? '#ff0000' : (ship.id == highlighted ? '#ffff00' : ship.color);
 					context.beginPath();
-					context.arc(ship.x, ship.y, ship.w/2, 0, Math.PI*2, true);
+					context.arc(pos.x, pos.y, ship.w/2, 0, Math.PI*2, true);
 					context.stroke();
 
 					if(ship.px != null && ship.py != null) {
 						context.strokeStyle = '#c0c0c0';
 						context.beginPath();
 						context.moveTo(ship.px, ship.py);
-						context.lineTo(ship.x, ship.y);
+						context.lineTo(pos.x, pos.y);
 						context.stroke();
 					}
 
@@ -175,7 +193,7 @@
 					if(move) {
 						context.strokeStyle = '#ffffff';
 						context.beginPath();
-						context.moveTo(ship.x, ship.y);
+						context.moveTo(pos.x, pos.y);
 						context.lineTo(move.x, move.y);
 						context.stroke();
 					}
@@ -185,7 +203,7 @@
 						if(target) {
 							context.strokeStyle = ship.color;
 							context.beginPath();
-							context.moveTo(ship.x, ship.y);
+							context.moveTo(pos.x, pos.y);
 							context.lineTo(target.x, target.y);
 							context.stroke();
 						}
@@ -200,8 +218,9 @@
 				var found = null;
 				$.each(currentGame.ships, function(entity, index) {
 					var halfW = entity.w / 2,
-						halfH = halfW;
-					if(entity.x - halfW <= x && entity.x + halfW >= x && entity.y - halfH <= y && entity.y + halfH >= y) {
+						halfH = halfW,
+						pos = shipLocations[entity.id] || entity;
+					if(pos.x - halfW <= x && pos.x + halfW >= x && pos.y - halfH <= y && pos.y + halfH >= y) {
 						found = entity;
 					}
 				});
