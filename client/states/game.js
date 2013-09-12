@@ -191,11 +191,12 @@
 
 					move = moves[ship.id];
 					if(move) {
-						context.strokeStyle = '#ffffff';
-						context.beginPath();
-						context.moveTo(pos.x, pos.y);
-						context.lineTo(move.x, move.y);
-						context.stroke();
+						exports.states.g.ship.renderArrow(context, pos, move, 'rgba(255,255,255,0.4)');
+						// context.strokeStyle = '#ffffff';
+						// context.beginPath();
+						// context.moveTo(pos.x, pos.y);
+						// context.lineTo(move.x, move.y);
+						// context.stroke();
 					}
 
 					if(ship.target) {
