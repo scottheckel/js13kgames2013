@@ -156,7 +156,7 @@ function createShipEntity(player, game, type) {
 		case 'b':
 			hp = 200;
 			damage = 10;
-			range = 200;
+			range = 300;
 			speed = 50;
 			w = 30;
 			h = 30;
@@ -164,7 +164,7 @@ function createShipEntity(player, game, type) {
 		case 'f':
 			hp = 100;
 			damage = 2;
-			range = 50;
+			range = 125;
 			speed = 150;
 			w = 10;
 			h = 10;
@@ -172,7 +172,7 @@ function createShipEntity(player, game, type) {
 		case 'c':
 			hp = 150;
 			damage = 5;
-			range = 100;
+			range = 200;
 			speed = 100;
 			w = 20;
 			h = 20;

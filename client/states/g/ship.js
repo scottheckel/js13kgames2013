@@ -15,6 +15,18 @@
 				return; // Dying
 			}
 
+			// Range
+			if(ship.id == selected || ship.id == highlighted) {
+				context.fillStyle = 'rgba(255,255,255,0.02)';
+				context.beginPath();
+				context.arc(pos.x, pos.y, ship.r, 0, Math.PI*2, true);
+				context.fill();
+				context.strokeStyle = '#fff';
+				context.beginPath();
+				context.arc(pos.x, pos.y, ship.r, 0, Math.PI*2, true);
+				context.stroke();
+			}
+
 			// Ship
 			context.strokeStyle = ship.id == selected ? '#ff0000' : (ship.id == highlighted ? '#ffff00' : ship.color);
 			context.beginPath();
