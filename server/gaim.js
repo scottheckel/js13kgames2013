@@ -30,10 +30,10 @@ gaim.createGame = function(creator) {
 		id: util.guid(),
 		host: creator,
 		players: [creator.id],
+		ready: [creator.id],
 		state: STATE_LOBBY,
 		mapSize: 5,
 		ships: [],
-		projectiles: [],
 		entitySequence: 1,
 		turnTime: 10
 	};
@@ -84,6 +84,18 @@ gaim.getPlayersList = function(id) {
 		players.push(this.players[game.players[index]]);
 	}
 	return players;
+};
+
+gaim.setReady = function(id, playerId, ready) {
+	var game = this.games[id];
+	if(game) {
+		if(ready) {
+			game.ready.push(playerId);
+		} else {
+			util.remove(game.ready, playerId);
+		}
+	}
+	return game;
 };
 
 gaim.startGame = function(id) {

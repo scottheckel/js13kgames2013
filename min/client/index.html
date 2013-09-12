@@ -29,7 +29,7 @@
 <td>{{id}}</td>
 <td>{{host}}</td>
 <td>{{count}}</td>
-</tr></script><script id=templateWelcome type=template>Just Ships Fighting - Welcome, {{name}}!</script><script id=templateUsersListItem type=template><li style="color:{{color}}">User: {{name}}</li></script><script id=templateMessagesListItem type=template><li>{{msg}}</li></script><script>(function(w) {
+</tr></script><script id=templateWelcome type=template>Just Ships Fighting - Welcome, {{name}}!</script><script id=templateUsersListItem type=template><li style="color:{{color}}">User: {{name}} {{ready}}</li></script><script id=templateMessagesListItem type=template><li>{{msg}}</li></script><script>(function(w) {
   var socket = io.connect('http://localhost:8080'),
       stateMachine = w.gameStates(w.stateFactory, socket),
       fps = 1000/60;

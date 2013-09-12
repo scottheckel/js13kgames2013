@@ -10,10 +10,12 @@
 				this.refreshUserList(players);
 				if(initData.host) {
 					$('#startGameBtn')
-						.attr('style', 'display:block')
+						.html('Start Game')
 						.on('click', this.startGame);
 				} else {
-					$('#startGameBtn').attr('style', 'display:none');
+					$('#startGameBtn')
+						.html('Ready')
+						.on('click', this.setReady);
 				}
 				socket.on('refreshUsersList', function(p) {
 					players = p;
@@ -22,9 +24,14 @@
 				socket.on('gameStarted', function(data) {
 					stateMachine.push('game', {game:data.game,players:players,host:initData.host});
 				});
+				socket.on('g/readied', function(data) {
+					game.ready.push(data.id);
+					that.refreshUserList(players);
+				});
 			},
 			onDeactivate: function () {
 				$('#wrapper').html('');
+				socket.removeAllListeners('g/readied');
 				socket.removeAllListeners('refreshUsersList');
 				socket.removeAllListeners('gameStarted');
 			},
@@ -40,7 +47,7 @@
 		 	refreshUserList: function(users) {
 				var html = '';
 				users.forEach(function(user) {
-					html += $.template(templateUsersListItem.innerHTML, user);
+					html += $.template($('#templateUsersListItem').html(), {'color':user.color,'name':user.name,'ready':game.ready.indexOf(user.id) >= 0?'(Ready)':''});
 				});
 				$('#usersList').html(html);
 			},
@@ -60,6 +67,15 @@
 				} else {
 					alert("Only host can start game.");
 				}
+			},
+			setReady: function() {
+				$('#startGameBtn').attr('disabled', 'disabled');
+				socket.emit('g/ready', {'id':game.id,'ready':true}, function(data) {
+					if(!data.success) {
+						alert('Unable to set ready status.');
+						$('#startGameBtn').attr('disabled', '');
+					}
+				});
 			}
 		};
 	};

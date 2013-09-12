@@ -21,5 +21,11 @@ module.exports = {
 	},
 	clamp: function(num, max, min) {
 		return Math.min(Math.max(num, min || 0), max);
+	},
+	remove: function(array, value) {
+		var index = array.indexOf(value);
+		if(index >= 0) {
+			array.splice(index, 1);
+		}
 	}
 };

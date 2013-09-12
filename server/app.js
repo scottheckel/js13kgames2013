@@ -89,6 +89,16 @@ io.sockets.on('connection', function (socket) {
     gaim.addMove(data.id, data.playerId, data.shipId, data.x, data.y);
   });
 
+  socket.on('g/ready', function(data, callback) {
+    var game = gaim.setReady(data.id, user.id, data.ready);
+    if(game) {
+      io.sockets.in(game.id).emit('g/readied', { 'id': user.id });
+      callback({'success':true});
+    } else {
+      callback({'success':false});
+    }
+  });
+
   socket.on('requestGames', function(data, callback) {
     callback(gaim.getGameList(gaim.STATE.LOBBY));
   });
