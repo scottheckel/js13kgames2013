@@ -5,9 +5,14 @@
 	exports.states.g = exports.states.g || {};
 	exports.states.g.ship = {
 		render: function(context, ship, pos, highlighted, selected, getShip) {
-			// Dead
 			if(ship.state == 0) {
-				return;
+				return; // Dead
+			} else if(ship.state == 1) {
+				context.fillStyle = '#ffff00';
+				context.beginPath();
+				context.arc(pos.x, pos.y, ship.w*(1+pos.t), 0, Math.PI*2, true);
+				context.fill();
+				return; // Dying
 			}
 
 			// Ship

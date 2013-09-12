@@ -99,12 +99,15 @@
 				that.redraw(currentGame);
 			},
 			animateShips: function(delta) {
+				// Animate all alive ships
 				$.each(currentGame.ships, function(ship) {
-					var pos = shipLocations[ship.id];
-					if(pos) {
-						pos.t = Math.min(pos.t + delta, 1);
-						pos.x = $.lerp(pos.x, ship.x, pos.t);
-						pos.y = $.lerp(pos.y, ship.y, pos.t);
+					if(ship.state >= 0) {
+						var pos = shipLocations[ship.id];
+						if(pos) {
+							pos.t = Math.min(pos.t + delta, 1);
+							pos.x = $.lerp(pos.x, ship.x, pos.t);
+							pos.y = $.lerp(pos.y, ship.y, pos.t);
+						}
 					}
 				});
 			},

@@ -32,7 +32,6 @@ gaim.createGame = function(creator) {
 		players: [creator.id],
 		ready: [creator.id],
 		state: STATE_LOBBY,
-		mapSize: 5,
 		ships: [],
 		entitySequence: 1,
 		turnTime: 10
@@ -101,8 +100,13 @@ gaim.setReady = function(id, playerId, ready) {
 gaim.startGame = function(id) {
 	var game = this.games[id];
 	if(game) {
-		game.state = game.players.length == 2 ? STATE_PLAYING : STATE_LOBBY;
-		populateEntities(game, this.getPlayersList(id));
+		if(game.players.length == 2 && game.ready.length == game.players.length) {
+			game.state = STATE_PLAYING;
+			game.ready = [];
+			populateEntities(game, this.getPlayersList(id));
+		} else {
+			game.state = STATE_LOBBY;
+		}
 	}
 	return game;
 };
@@ -110,6 +114,7 @@ gaim.startGame = function(id) {
 gaim.nextTurn = function(id) {
 	var game = this.games[id];
 	if(game) {
+		handleDying(game);
 		this.moves[id] = handleMove(game, this.moves[id]);
 		handleCombat(game);
 	}
@@ -179,7 +184,7 @@ function createShipEntity(player, game, type) {
 		color: player.color,
 		player: player.id,
 		v: speed,
-		state: 1,
+		state: 2,
 		type: ENTITY_SHIP,
 		hp: hp,
 		mHp: hp,
@@ -234,18 +239,28 @@ function getShipById(game, id) {
 	return null;
 }
 
+function handleDying(game) {
+	var index = 0;
+	for(;index<game.ships.length;index++) {
+		if(game.ships[index].state == 1) {
+			game.ships[index].state = 0;
+		}
+	}
+}
+
 function handleCombat(game) {
 	var index = 0,
 		ship, target;
-	for(index;index<game.ships.length;index++) {
+	for(;index<game.ships.length;index++) {
 		ship = game.ships[index];
-		if(ship.hp > 0) {
+		if(ship.state > 0) {
 			acquireTarget(game, ship);
 			if(ship.target) {
 				target = getShipById(game, ship.target);
 				target.hp -= ship.d;
 				if(target.hp <= 0) {
-					target.state = target.hp = 0;
+					target.state = 1;
+					target.hp = 0;
 				}
 			}
 		}

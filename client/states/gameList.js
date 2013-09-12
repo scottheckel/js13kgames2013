@@ -12,7 +12,7 @@
 				});
 				$('#createGameBtn').on('click', function() {
 					$('#createGameBtn').attr('disabled', 'disabled');
-					socket.emit('createGame', {'user':me}, that.gameCreated);
+					socket.emit('createGame', {}, that.gameCreated);
 				});
 				$('#refreshGamesBtn').on('click', function() {
 					socket.emit('requestGames', {}, function(data) {
@@ -57,7 +57,7 @@
 			    }
 			    $('#gamesList').html(html);
 			    $('.game-item').on('click', function() {
-			    	socket.emit('joinGame', {'gameId':this.getAttribute('data-id'),'user':me}, that.gameJoined);
+			    	socket.emit('joinGame', {'gameId':this.getAttribute('data-id')}, that.gameJoined);
 			    });
 			}
 		};

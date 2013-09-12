@@ -44,7 +44,7 @@ io.sockets.on('connection', function (socket) {
   socket.emit('refreshGames', gaim.getGameList(gaim.STATE.LOBBY));
 
   socket.on('joinGame', function (data, callback) {
-    var game = gaim.joinGame(data.gameId, data.user),
+    var game = gaim.joinGame(data.gameId, user),
         players;
     if(game) {
       players = gaim.getPlayersList(game.id);
@@ -58,7 +58,7 @@ io.sockets.on('connection', function (socket) {
   });
 
   socket.on('createGame', function (data, callback) {
-    var game = gaim.createGame(data.user),
+    var game = gaim.createGame(user),
         players;
     if(game) {
       players = gaim.getPlayersList(game.id);
