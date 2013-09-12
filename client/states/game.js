@@ -10,7 +10,7 @@
 			highlighted = null,
 			currentGame = initData.game,
 			currentPlayers = initData.players,
-			mouse = {x:0,y:0},
+			mouse = {x:0,y:0,down:false,ox:null,oy:null},
 			camera = {x:0,y:0,w:0,h:0}
 			moves = {},
 			toggleHp = true,
@@ -36,41 +36,32 @@
 				camera.w = canvas.width = innerWidth;
 				camera.h = canvas.height = innerHeight;
 
+				// Reset on Window sizing
+				$(window).on('resize', function() {
+					camera.w = canvas.width = innerWidth;
+					camera.h = canvas.height = innerHeight;
+				});
+
 				$canvas.on('keydown', function(e) {
 					that.onKeyDown(e);
 				});
-				$canvas.on('click', function(e) {
-					var x = e.pageX + camera.x,
-						y = e.pageY + camera.y,
-						move,
-						found = that.findShip(x, y);
-					if(found) {
-						if(selected == found.id) {
-							// Deselecting
-							selected = null;
-						} else if(found.player == me.id) {
-							// Selecting
-							selected = found.id;
-						}
-					} else if(selected) {
-						// Moving somewhere
-						move = {
-							id: initData.game.id,
-							playerId: me.id,
-							shipId: selected,
-							x: x,
-							y: y
-						}
-						moves[selected] = move;
-						socket.emit('g/move', move);
-					} else {
-						// Deselecting
-						selected = null;
-					}
+				$canvas.on('mousedown', function(e) {
+					that.onClick(e);
 				});
+				$canvas.on('mouseup', function() { mouse.down = false; });
+				$canvas.on('mouseleave', function() { mouse.down = false; });
+				$(window).on('mouseleave', function() { mouse.down = false; });
 				$canvas.on('mousemove', function(e) {
+					mouse.px = mouse.x;
+					mouse.py = mouse.y;
 					mouse.x = e.clientX;
 					mouse.y = e.clientY;
+					
+					// Drag
+					if(mouse.down) {
+						camera.x += mouse.px - mouse.x;
+						camera.y += mouse.py - mouse.y;						
+					}
 				});
 				socket.on('turnComplete', function(data) {
 					that.turnComplete(data);
@@ -94,7 +85,7 @@
 				if(counter) {
 					seconds = Math.floor((counter - new Date()) / 1000);
 					seconds = seconds < 0 ? 0 : seconds;
-					$('#gameCounter').html(seconds + " remaining");
+					$('#gameCounter').html(seconds);
 
 					temp = that.findShip(mouse.x + camera.x, mouse.y + camera.y);
 					highlighted = temp ? temp.id : null;
@@ -193,6 +184,36 @@
 					}
 				});
 				return found;
+			},
+			onClick: function(e) {
+				var x = e.pageX + camera.x,
+					y = e.pageY + camera.y,
+					move,
+					found = this.findShip(x, y);
+				mouse.down = true;
+				if(found) {
+					if(selected == found.id) {
+						// Deselecting
+						selected = null;
+					} else if(found.player == me.id) {
+						// Selecting
+						selected = found.id;
+					}
+				} else if(selected) {
+					// Moving somewhere
+					move = {
+						id: initData.game.id,
+						playerId: me.id,
+						shipId: selected,
+						x: x,
+						y: y
+					}
+					moves[selected] = move;
+					socket.emit('g/move', move);
+				} else {
+					// Deselecting
+					selected = null;
+				}
 			},
 			onKeyDown: function(e) {
 				var key = e.keyCode;

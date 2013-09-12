@@ -12,12 +12,19 @@
 		density = 0.0005,
 		minL = 200,
 		stars,
-		star;
+		star,
+		invalidate = true;
+
+	// Recreate starfield on resize
+	$(window).on('resize', function() {
+		invalidate = true;
+	});
 
 	function renderStarfield(context, camera) {
 		var index = 0,
 			x, y, dX, dY, maxX, maxY;
-		if(!stars) {
+		if(invalidate) {
+			invalidate = false;
 			initStarfield(camera);
 		}
 
