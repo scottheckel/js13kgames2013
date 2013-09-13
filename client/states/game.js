@@ -66,6 +66,14 @@
 				socket.on('turnComplete', function(data) {
 					that.turnComplete(data);
 				});
+				socket.on('g/disconnect', function(data) {
+					alert(data.msg);
+					
+					if(data.quit) {
+						stateMachine.pop();
+						stateMachine.pop();
+					}
+				});
 				that.redraw(currentGame);
 			},
 			onDeactivate: function () {

@@ -17,6 +17,10 @@
 						.html('Ready')
 						.on('click', this.setReady);
 				}
+				$('#leaveGameBtn').on('click', function() {
+					socket.emit('g/leave', {'gameId':game.id});
+					stateMachine.pop();
+				});
 				socket.on('refreshUsersList', function(p) {
 					players = p;
 					that.refreshUserList(p);
@@ -25,13 +29,28 @@
 					stateMachine.push('game', {game:data.game,players:players,host:initData.host});
 				});
 				socket.on('g/readied', function(data) {
-					game.ready.push(data.id);
+					game.ready = data.ready;
 					that.refreshUserList(players);
+				});
+				socket.on('g/disconnect', function(data) {
+					if(data.msg) {
+						alert(data.msg);
+					}
+					if(data.quit) {
+						stateMachine.pop();
+					} else {
+						game = data.game;
+						if(data.players) {
+							players = data.players;
+							that.refreshUserList(players);
+						}
+					}
 				});
 			},
 			onDeactivate: function () {
 				$('#wrapper').html('');
 				socket.removeAllListeners('g/readied');
+				socket.removeAllListeners('g/disconnect');
 				socket.removeAllListeners('refreshUsersList');
 				socket.removeAllListeners('gameStarted');
 			},

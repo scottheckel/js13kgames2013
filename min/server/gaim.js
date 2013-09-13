@@ -58,6 +58,49 @@ gaim.joinGame = function(id, player) {
 	return game;
 };
 
+gaim.disconnect = function(id, playerId) {
+	var game = this.games[id],
+		player = this.players[playerId],
+		name = player ? player.name : 'Unknown',
+		forceQuitGame = false,
+		message = null;
+
+	if(game) {
+		// Unset the player
+		delete this.players[playerId];
+		util.remove(game.ready, playerId);
+		util.remove(game.players, playerId);
+		
+		if(game.host.id == playerId) {
+			// Host left
+			forceQuitGame = true;
+			message = 'The host ' + name + ' left the game and the game will now end.';
+		} else if(game.state == STATE_PLAYING) {
+			// Player left during game
+			forceQuitGame = true;
+			message = name + ' left the game and the game will now end.';
+		} else {
+			// Player left in the lobby or other ok to leave state
+			message = name + ' left the game.';
+		}
+
+		// Quitting the game let's drop everything out
+		if(forceQuitGame) {
+			delete this.games[id];
+			delete this.moves[id];
+			this.count--;
+		}
+	}
+
+	return {
+		'quit': forceQuitGame,
+		'playerId': playerId,
+		'msg': message,
+		'game': this.games[id],
+		'players': forceQuitGame ? null : this.getPlayersList(id)
+	};
+};
+
 gaim.getGameList = function(filter) {
 	var games = [];
 	for(var g in this.games) {
@@ -79,8 +122,10 @@ gaim.getPlayersList = function(id) {
 	var game = this.games[id],
 		players = [],
 		index = 0;
-	for(;index<game.players.length;index++) {
-		players.push(this.players[game.players[index]]);
+	if(game) {
+		for(;index<game.players.length;index++) {
+			players.push(this.players[game.players[index]]);
+		}
 	}
 	return players;
 };
@@ -114,6 +159,7 @@ gaim.startGame = function(id) {
 gaim.nextTurn = function(id) {
 	var game = this.games[id];
 	if(game) {
+		// TODO: Are all ships dead for a player then end game
 		handleDying(game);
 		this.moves[id] = handleMove(game, this.moves[id]);
 		handleCombat(game);
@@ -122,16 +168,18 @@ gaim.nextTurn = function(id) {
 };
 
 gaim.addMove = function(gameId, playerId, shipId, x, y) {
-	var moves = this.moves[gameId];
-	if(moves) {
-		// TODO: Verify Ship is owned by Player
-
-		moves[shipId] = {
-			playerId: playerId,
-			shipId: shipId,
-			x: x,
-			y: y
-		};
+	var moves = this.moves[gameId],
+		game = this.games[gameId];
+	if(moves && game) {
+		var ship = getShipById(game, shipId);
+		if(ship && ship.player == playerId) {
+			moves[shipId] = {
+				playerId: playerId,
+				shipId: shipId,
+				x: x,
+				y: y
+			};
+		}
 	}
 };
 

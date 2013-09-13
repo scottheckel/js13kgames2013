@@ -34,19 +34,33 @@ function handler (req, res) {
 }
 
 io.sockets.on('connection', function (socket) {
-  var user = {
-    id: util.guid(),
-    name: randomName(),
-    client: socket.id
-  };
+  var gameId = null,
+      user = {
+        id: util.guid(),
+        name: randomName(),
+        client: socket.id
+      };
 
   socket.emit('connected', user);
   socket.emit('refreshGames', gaim.getGameList(gaim.STATE.LOBBY));
+
+  socket.on('disconnect', function() {
+    if(gameId) {
+      var result = gaim.disconnect(gameId, user.id);
+      socket.broadcast.to(gameId).emit('g/disconnect', result);
+
+      // If the game is quitting, remove everyone from the room
+      if(result.quit) {
+        removeAllClientsFromGame(gameId);
+      }
+    }
+  });
 
   socket.on('joinGame', function (data, callback) {
     var game = gaim.joinGame(data.gameId, user),
         players;
     if(game) {
+      gameId = game.id;
       players = gaim.getPlayersList(game.id);
 
       socket.join(game.id);
@@ -61,6 +75,7 @@ io.sockets.on('connection', function (socket) {
     var game = gaim.createGame(user),
         players;
     if(game) {
+      gameId = game.id;
       players = gaim.getPlayersList(game.id);
 
       socket.join(game.id);
@@ -86,16 +101,31 @@ io.sockets.on('connection', function (socket) {
   });
 
   socket.on('g/move', function(data) {
-    gaim.addMove(data.id, data.playerId, data.shipId, data.x, data.y);
+    gaim.addMove(data.id, user.id, data.shipId, data.x, data.y);
   });
 
   socket.on('g/ready', function(data, callback) {
     var game = gaim.setReady(data.id, user.id, data.ready);
     if(game) {
-      io.sockets.in(game.id).emit('g/readied', { 'id': user.id });
+      io.sockets.in(game.id).emit('g/readied', { 'ready': game.ready });
       callback({'success':true});
     } else {
       callback({'success':false});
+    }
+  });
+
+  socket.on('g/leave', function(data) {
+    // Leave the game room
+    gameId = null;
+    socket.leave(data.gameId);
+
+    // Disconnect from game
+    var result = gaim.disconnect(data.gameId, user.id);
+    socket.broadcast.to(data.gameId).emit('g/disconnect', result);
+
+    // If the game is quitting, remove everyone from the room
+    if(result.quit) {
+      removeAllClientsFromGame(data.gameId);
     }
   });
 
@@ -104,12 +134,17 @@ io.sockets.on('connection', function (socket) {
   });
 });
 
+function removeAllClientsFromGame(gameId) {
+  io.sockets.clients(gameId).forEach(function(user) {
+    user.leave(gameId);
+  });
+}
 
 function randomName() {
   var words = [
     'Cat','Dog','Bird','Pig','Horse','Monkey','Giraffe','Elephant','Rhino','Badger','Turtle','Panther','Spider','Tortuga',
     'Green','Orange','Steel','Grey','Red','Crimson','Midnight','Concrete','Blue','Yellow','Golden','Brown','Black','Pink',
-    'Running','Sitting','Laughing','Plodding','Fleeting','Sneaky',
+    'Running','Sitting','Laughing','Plodding','Fleeting','Sneaky','Snoring','Boring',
     'North','South','East','West','Downtown','Carolina','Dakota','York','Nevada','Washington','California','Iowa','Ohio','Michigan','Minnesota','Wisconsin','Hampshire','Falls','Edwards','Franklin','Athens','Oak','Bern','Berlin','London','Shanghai','Paris','Rio','Seattle','Tokyo',
     'Baby','Object','Car','Sporty','Mountain','Cable','Semi','Paint','Time','VHS','Coffeee','Tea','Trunk','Chair','Shoe','Grand','Gum','Saint',
     'Hot','Cold','Small','Big','Salty'
