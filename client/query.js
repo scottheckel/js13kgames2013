@@ -35,6 +35,15 @@
 		    	});
 		    	return this;
 		    },
+		    value: function(value) {
+		    	if(value == undefined) {
+		    		return els.length > 0 ? els[0].value : '';
+		    	}
+		    	query.each(els, function(el) {
+		    		el.value = value;
+		    	});
+		    	return this;	
+		    },
 		    context: function() {
 		    	return els.length > 0 ? els[0].getContext('2d') : null;
 		    },

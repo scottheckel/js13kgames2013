@@ -59,6 +59,13 @@
 			    $('.game-item').on('click', function() {
 			    	socket.emit('joinGame', {'gameId':this.getAttribute('data-id')}, that.gameJoined);
 			    });
+			    if(games.length==0) {
+				    $('#noGamesAvailable').attr('style', 'display:block');
+				    $('#gamesListTable').attr('style', 'display:none');
+				} else {
+				    $('#noGamesAvailable').attr('style', 'display:none');
+				    $('#gamesListTable').attr('style', 'display:block');
+				}
 			}
 		};
 	};

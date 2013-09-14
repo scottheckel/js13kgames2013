@@ -122,6 +122,11 @@
 			turnComplete: function(data) {
 				currentGame.ships = data.ships;
 
+				// Look for the game ending
+				if(data.state == 2) {
+					alert('Battle over.');
+				}
+
 				// Reset
 				this.resetCounter();
 				this.resetShips();

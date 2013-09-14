@@ -1,4 +1,4 @@
-var gaim = module.exports = { games: {}, moves: {}, players: {}, count: 0};
+var gaim = module.exports = { games: {}, moves: {}, players: {}, fleets: {}, count: 0};
 
 /* Game States */
 var STATE_LOBBY = 0,
@@ -20,6 +20,12 @@ var SHIP_BATTLESHIP = 'b',
 	SHIP_CORVETTE = 'c',
 	SHIP_FIGHTER = 'f';
 
+var SHIP_COST_BATTLESHIP = 200,
+	SHIP_COST_CORVETTE = 100,
+	SHIP_COST_FIGHTER = 100;
+
+var MAX_COST = 1000;
+
 var util = require('./util');
 
 gaim.createGame = function(creator) {
@@ -33,6 +39,7 @@ gaim.createGame = function(creator) {
 		ready: [creator.id],
 		state: STATE_LOBBY,
 		ships: [],
+		attacks: [],
 		entitySequence: 1,
 		turnTime: 10
 	};
@@ -40,6 +47,7 @@ gaim.createGame = function(creator) {
 	// Add to our games
 	this.games[game.id] = game;
 	this.moves[game.id] = {};
+	this.fleets[game.id] = {};
 	this.players[creator.id] = creator;
 	this.count++;
 
@@ -88,6 +96,7 @@ gaim.disconnect = function(id, playerId) {
 		if(forceQuitGame) {
 			delete this.games[id];
 			delete this.moves[id];
+			delete this.fleets[id];
 			this.count--;
 		}
 	}
@@ -130,11 +139,16 @@ gaim.getPlayersList = function(id) {
 	return players;
 };
 
-gaim.setReady = function(id, playerId, ready) {
+gaim.setReady = function(id, playerId, ready, fleet) {
 	var game = this.games[id];
 	if(game) {
 		if(ready) {
-			game.ready.push(playerId);
+			if(MAX_COST >= (fleet.bs * SHIP_COST_BATTLESHIP + fleet.cv * SHIP_COST_CORVETTE + fleet.ft * SHIP_COST_FIGHTER)) {
+				game.ready.push(playerId);
+				this.fleets[id][playerId] = fleet;
+			} else {
+				return null;
+			}
 		} else {
 			util.remove(game.ready, playerId);
 		}
@@ -142,13 +156,14 @@ gaim.setReady = function(id, playerId, ready) {
 	return game;
 };
 
-gaim.startGame = function(id) {
+gaim.startGame = function(id, fleet) {
 	var game = this.games[id];
 	if(game) {
-		if(game.players.length == 2 && game.ready.length == game.players.length) {
+		if(game.players.length == 2 && game.ready.length == game.players.length && MAX_COST >= (fleet.bs * SHIP_COST_BATTLESHIP + fleet.cv * SHIP_COST_CORVETTE + fleet.ft * SHIP_COST_FIGHTER)) {
 			game.state = STATE_PLAYING;
 			game.ready = [];
-			populateEntities(game, this.getPlayersList(id));
+			this.fleets[id][game.host.id] = fleet;
+			populateEntities(game, this.getPlayersList(id), this.fleets[id]);
 		} else {
 			game.state = STATE_LOBBY;
 		}
@@ -157,12 +172,14 @@ gaim.startGame = function(id) {
 };
 
 gaim.nextTurn = function(id) {
-	var game = this.games[id];
+	var game = this.games[id],
+		winningPlayer;
 	if(game) {
 		// TODO: Are all ships dead for a player then end game
 		handleDying(game);
 		this.moves[id] = handleMove(game, this.moves[id]);
 		handleCombat(game);
+		checkForWin(game);
 	}
 	return game;
 };
@@ -183,22 +200,26 @@ gaim.addMove = function(gameId, playerId, shipId, x, y) {
 	}
 };
 
-function populateEntities(game, players) {
-	var index = 0;
+function populateEntities(game, players, fleets) {
+	var index = 0, j, fleet;
 	for(;index<players.length;index++) {
-		game.ships.push(createShipEntity(players[index], game, SHIP_BATTLESHIP));
-		game.ships.push(createShipEntity(players[index], game, SHIP_BATTLESHIP));
-		game.ships.push(createShipEntity(players[index], game, SHIP_CORVETTE));
-		game.ships.push(createShipEntity(players[index], game, SHIP_CORVETTE));
-		game.ships.push(createShipEntity(players[index], game, SHIP_CORVETTE));
-		game.ships.push(createShipEntity(players[index], game, SHIP_CORVETTE));
-		game.ships.push(createShipEntity(players[index], game, SHIP_FIGHTER));
-		game.ships.push(createShipEntity(players[index], game, SHIP_FIGHTER));
+		fleet = fleets[players[index].id];
+		if(fleet) {
+			for(j = 0;j<fleet.bs;j++) {
+				game.ships.push(createShipEntity(players[index], game, SHIP_BATTLESHIP));
+			}
+			for(j = 0;j<fleet.cv;j++) {
+				game.ships.push(createShipEntity(players[index], game, SHIP_CORVETTE));
+			}
+			for(j = 0;j<fleet.ft;j++) {
+				game.ships.push(createShipEntity(players[index], game, SHIP_FIGHTER));
+			}
+		}
 	}
 }
 
 function createShipEntity(player, game, type) {
-	var hp, damage, range, speed, w, h;
+	var hp, damage, range, speed, dodge, w, h;
 
 	switch(type) {
 		case 'b':
@@ -206,14 +227,16 @@ function createShipEntity(player, game, type) {
 			damage = 10;
 			range = 300;
 			speed = 50;
+			dodge = 0.1;
 			w = 30;
 			h = 30;
 			break;
 		case 'f':
 			hp = 100;
-			damage = 2;
+			damage = 3;
 			range = 125;
 			speed = 150;
+			dodge = 0.6;
 			w = 10;
 			h = 10;
 			break;
@@ -222,6 +245,7 @@ function createShipEntity(player, game, type) {
 			damage = 5;
 			range = 200;
 			speed = 100;
+			dodge = 0.2;
 			w = 20;
 			h = 20;
 			break;
@@ -237,6 +261,7 @@ function createShipEntity(player, game, type) {
 		hp: hp,
 		mHp: hp,
 		d: damage,
+		o: dodge,
 		r: range,
 		r2: range*range,
 		px: null,
@@ -296,16 +321,45 @@ function handleDying(game) {
 	}
 }
 
+function checkForWin(game) {
+	var index = 0,
+		hasShips = {};
+	for(;index<game.ships.length;index++) {
+		hasShips[game.ships[index].player] |= game.ships[index].state > 1;
+	}
+	for(index=0;index<game.players.length;index++) {
+		if(!hasShips[game.players[index]]) {
+			game.state = STATE_OVER;
+			game.winner = game.players[index];
+		}
+	}
+}
+
 function handleCombat(game) {
 	var index = 0,
-		ship, target;
+		ship, target, damage;
+	game.attacks = [];
 	for(;index<game.ships.length;index++) {
 		ship = game.ships[index];
 		if(ship.state > 0) {
 			acquireTarget(game, ship);
 			if(ship.target) {
 				target = getShipById(game, ship.target);
-				target.hp -= ship.d;
+				
+				// Determine Damage
+				damage = util.random() < ship.o ? 0 : ship.d;
+
+				// Push onto list of attacks
+				game.attacks.push({
+					s: ship.id,
+					t: ship.target,
+					d: damage
+				});
+
+				// Remove the hp from the ship
+				target.hp -= damage;
+
+				// Set to dying if dead
 				if(target.hp <= 0) {
 					target.state = 1;
 					target.hp = 0;

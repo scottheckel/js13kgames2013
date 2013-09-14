@@ -5,6 +5,9 @@ module.exports = {
     		return v.toString(16);
 		});
 	},
+	random: function() {
+		return Math.random();
+	},
 	randomInt: function(max) {
 		return Math.floor(max * Math.random());
 	},

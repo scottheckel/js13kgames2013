@@ -16,7 +16,7 @@
 <script id="gameListTemplate" type="template">
 <div id="headerWrapper">Connecting...</div>
 <div id="welcomeWrapper">
-<table>
+<table id="gamesListTable" style="display:none">
 <thead>
 <tr>
 <th>Host</th>
@@ -25,6 +25,7 @@
 </thead>
 <tbody id="gamesList"></tbody>
 </table>
+<p id="noGamesAvailable" style="display:none">There are no games waiting for players right now.</p>
 <div>
 <button id="createGameBtn">Create New Game</button>
 <button id="refreshGamesBtn">Refresh Games</button
@@ -38,8 +39,37 @@
 <script id="gameLobbyTemplate" type="template">
 <div id="gameWrapper">
 <ul id="usersList"></ul>
+<table>
+<tr>
+<th>Ship Name</th>
+<th>Cost/Unit</th>
+<th>Quantity</th>
+<th>Cost</th>
+</tr>
+<tr>
+<th>Battleship</th>
+<td id="bsCost">200</td>
+<td><input type="number" id="bsQty" value="2"></td>
+<td id="bsTotal">400</td>
+</tr>
+<tr>
+<th>Corvette</th>
+<td id="cvCost">100</td>
+<td><input type="number" id="cvQty" value="4"></td>
+<td id="cvTotal">400</td>
+</tr>
+<tr>
+<th>Fighter</th>
+<td id="ftCost">100</td>
+<td><input type="number" id="ftQty" value="2"></td>
+<td id="ftTotal">200</td>
+</tr>
+</table>
+<p>The maximum cost your fleet can be is <span id="maxCost"></span>.</p>
+<p>
 <button id="startGameBtn">Start Game</button>
 <button id="leaveGameBtn">Leave Game</button>
+</p>
 </div>
 </script>
 <script id="gameTemplate" type="template">

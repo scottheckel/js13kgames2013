@@ -85,10 +85,14 @@ io.sockets.on('connection', function (socket) {
     }
   });
 
-  socket.on('startGame', function (data) {
-    var game = gaim.startGame(data.gameId),
+  socket.on('startGame', function (data, errCallback) {
+    var game = gaim.startGame(data.gameId, data.fleet),
         players = gaim.getPlayersList(data.gameId);
-    io.sockets.in(game.id).emit('gameStarted', {'game':game,'players':players});
+    if(game.state == gaim.STATE.LOBBY) {
+      errCallback();
+    } else {
+      io.sockets.in(game.id).emit('gameStarted', {'game':game,'players':players});
+    }
   });
 
   socket.on('turnNext', function(data) {
@@ -105,7 +109,7 @@ io.sockets.on('connection', function (socket) {
   });
 
   socket.on('g/ready', function(data, callback) {
-    var game = gaim.setReady(data.id, user.id, data.ready);
+    var game = gaim.setReady(data.id, user.id, data.ready, data.fleet);
     if(game) {
       io.sockets.in(game.id).emit('g/readied', { 'ready': game.ready });
       callback({'success':true});
